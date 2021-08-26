@@ -90,10 +90,6 @@ export default function Elections({
       align: "center",
       render: roles =>
         roles.map(r => {
-          //   let color = tag.length > 5 ? 'geekblue' : 'green';
-          //   if (tag === 'loser') {
-          //     color = 'volcano';
-          //   }
           let color = "geekblue";
           if (r == "candidate") {
             color = "green";
@@ -238,7 +234,7 @@ export default function Elections({
     console.log({ newElecName });
     console.log({ addresses });
     const result = tx(
-      writeContracts.Diplomacy.newElection(newElecName, newElecAllocatedFunds, newElecAllocatedVotes, addresses),
+      writeContracts.Diplomacy.newElection(newElecName, newElecAllocatedFunds, fundsType, newElecAllocatedVotes, addresses),
       update => {
         console.log("📡 Transaction Update:", update);
         if (update && (update.status === "confirmed" || update.status === 1)) {
@@ -254,8 +250,16 @@ export default function Elections({
 
   const [addresses, setAddresses] = useState([]);
   const [toAddress, setToAddress] = useState("");
+  const [fundsType, setFundsType] = useState("ETH");
 
-  const [canContinue, setCanContinue] = useState(false);
+  const selectFundsType = (
+    <Select defaultValue="ETH" 
+      className="select-funds-type" 
+      onChange={ value => { setFundsType(value); } }>
+      <Option value="ETH">ETH</Option>
+      <Option value="GTC">GTC</Option>
+    </Select>
+  );
 
   return (
     <>
@@ -264,6 +268,7 @@ export default function Elections({
           form={form}
           name="basic"
           labelCol={{ span: 6 }}
+          // layout="vertical"
           wrapperCol={{ span: 16 }}
           initialValues={{ remember: false }}
           onFinish={onFinish}
@@ -284,6 +289,7 @@ export default function Elections({
                   size="large"
                   placeholder="Election Name"
                   autoComplete="false"
+                  allowClear={true}
                   onChange={e => {
                     e.target.value ? setNewElecName(e.target.value) : null;
                   }}
@@ -292,23 +298,22 @@ export default function Elections({
               <Form.Item
                 name="funds"
                 label="Funds"
-                // rules={[{ required: true, pattern: new RegExp(/^[0-9]+$/), message: "ETH Funds Required!" }]}
+                rules={[{ required: true, pattern: new RegExp(/^[0-9]+$/), message: "Funding is Required!" }]}
               >
-                <EtherInput
-                  type="number"
-                  price={price}
-                  value={newElecAllocatedFunds}
-                  placeholder="Enter amount"
-                  onChange={value => {
-                    if (!isNaN(Number(value))) {
-                      let weiValue = toWei(Number(value).toFixed(18).toString());
-                      setNewElecAllocatedFunds(weiValue);
-                      setCanContinue(true);
-                    } else {
-                      setCanContinue(false);
-                    }
-                  }}
-                />
+              <Input 
+                addonBefore={selectFundsType} 
+                placeholder="Enter Amount"
+                size="large"
+                allowClear={true}
+                onChange={value => {
+                  if (!isNaN(Number(value))) {
+                    let weiValue = toWei(Number(value).toFixed(18).toString());
+                    setNewElecAllocatedFunds(weiValue);
+                  } else {
+                  }
+                }}
+              />
+                
               </Form.Item>
               <Form.Item
                 name="votes"
