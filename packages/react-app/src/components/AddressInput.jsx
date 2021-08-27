@@ -127,7 +127,7 @@ export default function AddressInput(props) {
         placeholder={props.placeholder ? props.placeholder : "address"}
         prefix={<Blockie address={currentValue} size={8} scale={3} />}
         value={ens || currentValue}
-        style={{ width: 500 }}
+        // style={{ width: 500 }}
         onChange={e => {
           updateAddress(e.target.value);
         }}

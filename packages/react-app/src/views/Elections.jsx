@@ -1,6 +1,6 @@
-import { PageHeader, Carousel } from "antd";
+import { PageHeader, Carousel, Typography } from "antd";
 import { toWei, fromWei } from "web3-utils";
-import { Button, Divider, Input, InputNumber, List, Table, Modal, Form, Select, Space, Tag, Descriptions } from "antd";
+import { Button, Divider, Input, InputNumber, List, Table, Modal, Form, Select, Space, Tag, Descriptions} from "antd";
 import React, { useState, useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import { Address, Balance } from "../components";
@@ -11,6 +11,7 @@ import AddressInput from "../components/AddressInput";
 import { mainnetProvider, blockExplorer } from "../App";
 
 import "../index.css";
+import 'antd/dist/antd.css';
 
 const { Option } = Select;
 
@@ -73,6 +74,9 @@ export default function Elections({
       key: "name",
       width: 150,
       align: "center",
+      render: name => (
+        <Typography.Title level={5}>{name}</Typography.Title>
+      ),
     },
     {
       title: "Admin",
@@ -287,7 +291,7 @@ export default function Elections({
   };
 
   const selectFundsType = (
-    <Select defaultValue="ETH" 
+    <Select defaultValue="ETH"
       className="select-funds-type" 
       onChange={ value => { setFundsType(value); } }>
       <Option value="ETH">ETH</Option>
@@ -297,12 +301,13 @@ export default function Elections({
 
   return (
     <>
-      <Modal visible={isModalVisible} footer={false} onCancel={handleCancel} width={700}>
+      <Modal visible={isModalVisible} footer={false} onCancel={handleCancel}>
         <Form
+          layout="vertical"
           form={form}
           name="basic"
-          labelCol={{ span: 6 }}
-          wrapperCol={{ span: 16 }}
+          // labelCol={{ span: 6 }}
+          // wrapperCol={{ span: 16 }}
           initialValues={{ remember: false }}
           onFinish={onFinish}
         >
@@ -312,22 +317,25 @@ export default function Elections({
                 ghost={false}
                 title="Create A New Election"
                 // subTitle="Election Options"
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                // style={{
+                //   display: "flex",
+                //   justifyContent: "center",
+                //   alignItems: "center",
+                // }}
               />
               <Form.Item
                 name="elec_name"
-                label="Name"
+                label="Election Name"
                 rules={[{ required: true, message: "Please input election name!" }]}
               >
                 <Input
                   size="large"
-                  placeholder="Election Name"
+                  placeholder="Enter Name"
                   autoComplete="false"
                   allowClear={true}
+                  style={{
+                    width: 300,
+                  }}
                   onChange={e => {
                     e.target.value ? setNewElecName(e.target.value) : null;
                   }}
@@ -335,15 +343,18 @@ export default function Elections({
               </Form.Item>
               <Form.Item
                 name="funds"
-                label="Funds"
-                rules={[{ required: true, pattern: new RegExp(/^[0-9]+$/), message: "Funding is Required!" }]}
+                label="Funding Allocation"
+                rules={[{ required: true, pattern: new RegExp(/^[.0-9]+$/), message: "Funding is Required!" }]}
               >
               <Input 
-                addonBefore={selectFundsType} 
+                addonAfter={selectFundsType} 
                 placeholder="Enter Amount"
                 size="large"
                 allowClear={true}
                 value={newElecAllocatedFunds}
+                style={{
+                    width: 300,
+                }}
                 onChange={e => {
                   if (!isNaN(Number(e.target.value))) {
                     let funds; 
@@ -368,6 +379,10 @@ export default function Elections({
                 <InputNumber
                   size="large"
                   placeholder="1"
+                  style={{
+                    width: 300,
+                  }}
+                  min="1"
                   onChange={value => {
                     setNewElecAllocatedVotes(value);
                   }}
@@ -375,11 +390,11 @@ export default function Elections({
               </Form.Item>
 
               <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                // style={{
+                //   display: "flex",
+                //   justifyContent: "center",
+                //   alignItems: "center",
+                // }}
               >
                 <Divider>
                   <Button
@@ -407,11 +422,11 @@ export default function Elections({
               />
               <Form.Item
                 name="candidates"
-                style={{
-                  display: "flex",
-                  justifyContent: "left",
-                  alignItems: "center",
-                }}
+                // style={{
+                //   display: "flex",
+                //   justifyContent: "left",
+                //   alignItems: "center",
+                // }}
               >
                 <Space>
                   <AddressInput
@@ -456,11 +471,11 @@ export default function Elections({
                 )}
               />
               <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                // style={{
+                //   display: "flex",
+                //   justifyContent: "center",
+                //   alignItems: "center",
+                // }}
               >
                 <Divider>
                   <Button
@@ -504,14 +519,18 @@ export default function Elections({
                 </Descriptions.Item>
               </Descriptions>
               <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                // style={{
+                //   display: "flex",
+                //   justifyContent: "center",
+                //   alignItems: "center",
+                // }}
               >
+                {fundsType !== "ETH" && (
+                  <Divider>
+                    <Button type="danger" shape="round" onClick={approveToken}>Approve Token</Button>
+                  </Divider>
+                )}
                 <Divider>
-                  <Button onClick={approveToken}>APPROVE TOKEN</Button>
                   {!isCreating && (
                     <Button type="primary" size="large" shape="round" htmlType="submit" className="login-form-button">
                       Confirm Election
