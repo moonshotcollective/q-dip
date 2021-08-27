@@ -90,6 +90,10 @@ export default function Elections({
       align: "center",
       render: roles =>
         roles.map(r => {
+          //   let color = tag.length > 5 ? 'geekblue' : 'green';
+          //   if (tag === 'loser') {
+          //     color = 'volcano';
+          //   }
           let color = "geekblue";
           if (r == "candidate") {
             color = "green";
@@ -179,6 +183,7 @@ export default function Elections({
 
   const updateView = async () => {
     console.log("updateView ");
+    setTableDataLoading(true);
     const numElections = (await readContracts.Diplomacy.numElections()).toNumber();
     // console.log("numElections ", numElections);
     setNumElections(numElections);
@@ -220,6 +225,7 @@ export default function Elections({
     }
     data = data.reverse();
     setTableDataSrc(data);
+    setTableDataLoading(false);
   };
 
   const createNewElection = () => {
@@ -234,7 +240,7 @@ export default function Elections({
     console.log({ newElecName });
     console.log({ addresses });
     const result = tx(
-      writeContracts.Diplomacy.newElection(newElecName, newElecAllocatedFunds, fundsType, newElecAllocatedVotes, addresses),
+      writeContracts.Diplomacy.newElection(newElecName, newElecAllocatedFunds, newElecAllocatedVotes, addresses),
       update => {
         console.log("📡 Transaction Update:", update);
         if (update && (update.status === "confirmed" || update.status === 1)) {
@@ -246,61 +252,26 @@ export default function Elections({
       },
     );
   };
-
-  const approve = async () => {
-    const res = tx(
-      writeContracts.Diplomacy.approveToken(), 
-      update => {
-        console.log("📡 Transaction Update:", update);
-        if (update && (update.status === "confirmed" || update.status === 1)) {
-          console.log(" 🍾 Transaction " + update.hash + " finished!");
-        } else {
-          console.log("update error ", update.status);
-          setIsCreating(false);
-        }
-      },
-    )
-  }
-  const tokenPayout = async () => {
-    const res = tx(
-      writeContracts.Diplomacy._tokenPayout({gasLimit: 12450000}), 
-      update => {
-        console.log("📡 Transaction Update:", update);
-        if (update && (update.status === "confirmed" || update.status === 1)) {
-          console.log(" 🍾 Transaction " + update.hash + " finished!");
-        } else {
-          console.log("update error ", update.status);
-          setIsCreating(false);
-        }
-      },
-    )
-  }
-
   const slider = useRef(null);
 
   const [addresses, setAddresses] = useState([]);
   const [toAddress, setToAddress] = useState("");
-  const [fundsType, setFundsType] = useState("ETH");
 
-  const selectFundsType = (
-    <Select defaultValue="ETH" 
-      className="select-funds-type" 
-      onChange={ value => { setFundsType(value); } }>
-      <Option value="ETH">ETH</Option>
-      <Option value="GTC">GTC</Option>
-    </Select>
-  );
+  const [canContinue, setCanContinue] = useState(false);
+  const [tableDataLoading, setTableDataLoading] = useState(false);
+
+  let table_state = {
+    bordered: true,
+    loading: tableDataLoading,
+  };
 
   return (
     <>
-              <Button onClick={approve}> APPROVE </Button>
-              <Button onClick={tokenPayout}> TOKEN PAYOUT </Button>
-      <Modal visible={isModalVisible} footer={false} onCancel={handleCancel}>
+      <Modal visible={isModalVisible} footer={false} onCancel={handleCancel} width={700}>
         <Form
           form={form}
           name="basic"
           labelCol={{ span: 6 }}
-          // layout="vertical"
           wrapperCol={{ span: 16 }}
           initialValues={{ remember: false }}
           onFinish={onFinish}
@@ -311,6 +282,11 @@ export default function Elections({
                 ghost={false}
                 title="Create A New Election"
                 // subTitle="Election Options"
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               />
               <Form.Item
                 name="elec_name"
@@ -321,7 +297,6 @@ export default function Elections({
                   size="large"
                   placeholder="Election Name"
                   autoComplete="false"
-                  allowClear={true}
                   onChange={e => {
                     e.target.value ? setNewElecName(e.target.value) : null;
                   }}
@@ -330,28 +305,23 @@ export default function Elections({
               <Form.Item
                 name="funds"
                 label="Funds"
-                rules={[{ required: true, pattern: new RegExp(/^[0-9]+$/), message: "Funding is Required!" }]}
+                // rules={[{ required: true, pattern: new RegExp(/^[0-9]+$/), message: "ETH Funds Required!" }]}
               >
-              <Input 
-                addonBefore={selectFundsType} 
-                placeholder="Enter Amount"
-                size="large"
-                allowClear={true}
-                value={newElecAllocatedFunds}
-                onChange={e => {
-                  if (!isNaN(Number(e.target.value))) {
-                    let funds; 
-                    if (fundsType === "ETH") {
-                      funds = toWei(Number(e.target.value).toFixed(18).toString());
-                    } else if (fundsType === "GTC") {
-                      funds = toWei(Number(e.target.value).toFixed(18).toString()); // * 10^18 for Tokens??
+                <EtherInput
+                  type="number"
+                  price={price}
+                  value={newElecAllocatedFunds}
+                  placeholder="Enter amount"
+                  onChange={value => {
+                    if (!isNaN(Number(value))) {
+                      let weiValue = toWei(Number(value).toFixed(18).toString());
+                      setNewElecAllocatedFunds(weiValue);
+                      setCanContinue(true);
+                    } else {
+                      setCanContinue(false);
                     }
-                    setNewElecAllocatedFunds(funds);
-                  } else {
-                  }
-                }}
-              />
-                
+                  }}
+                />
               </Form.Item>
               <Form.Item
                 name="votes"
@@ -406,7 +376,7 @@ export default function Elections({
                 name="candidates"
                 style={{
                   display: "flex",
-                  justifyContent: "center",
+                  justifyContent: "left",
                   alignItems: "center",
                 }}
               >
@@ -431,25 +401,24 @@ export default function Elections({
               </Form.Item>
               <List
                 style={{ overflow: "auto", height: "200px" }}
+                itemLayout="horizontal"
                 bordered
                 dataSource={addresses}
                 renderItem={(item, index) => (
                   <List.Item>
-                    <div>
-                      <Address address={item} ensProvider={mainnetProvider} fontSize="14pt" />
-                      <Button
-                        type="link"
-                        onClick={async () => {
-                          const updatedAddresses = [...addresses];
-                          updatedAddresses.splice(index, 1);
-                          setAddresses(updatedAddresses);
-                        }}
-                        size="medium"
-                        style={{ marginLeft: "200px" }}
-                      >
-                        ❌
-                      </Button>
-                    </div>
+                    <Address address={item} ensProvider={mainnetProvider} fontSize="14pt" />
+                    <Button
+                      type="link"
+                      onClick={async () => {
+                        const updatedAddresses = [...addresses];
+                        updatedAddresses.splice(index, 1);
+                        setAddresses(updatedAddresses);
+                      }}
+                      size="medium"
+                      style={{ marginLeft: "200px" }}
+                    >
+                      ❌
+                    </Button>
                   </List.Item>
                 )}
               />
@@ -541,7 +510,7 @@ export default function Elections({
           ]}
         />
         <Divider />
-        <Table dataSource={tableDataSrc} columns={columns} pagination={{ pageSize: 5 }} />
+        <Table {...table_state} dataSource={tableDataSrc} columns={columns} pagination={{ pageSize: 5 }} />
       </div>
     </>
   );
