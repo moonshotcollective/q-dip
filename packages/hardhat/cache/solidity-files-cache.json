@@ -481,8 +481,8 @@
       ]
     },
     "/Users/hansmartin/Documents/q-dip/packages/hardhat/contracts/Diplomacy.sol": {
-      "lastModificationDate": 1630031915640,
-      "contentHash": "2a2a1748ab2393d9b1cf1ca056ef8190",
+      "lastModificationDate": 1630041948636,
+      "contentHash": "fa5c3bf4601e5b6ca0e362536affe97f",
       "sourceName": "contracts/Diplomacy.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -520,7 +520,8 @@
         "@openzeppelin/contracts/access/AccessControl.sol",
         "prb-math/contracts/PRBMathSD59x18.sol",
         "@openzeppelin/contracts/utils/math/SafeMath.sol",
-        "@openzeppelin/contracts/token/ERC20/ERC20.sol"
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
       ],
       "versionPragmas": [
         "^0.8.0"

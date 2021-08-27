@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "prb-math/contracts/PRBMathSD59x18.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Diplomacy is AccessControl, Ownable {
     using PRBMathSD59x18 for int256;
@@ -139,7 +140,7 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
-    function _ethPayout(uint256 electionId, address[] memory _adrs, uint256[] memory _pay) internal returns(bool) {
+    function _ethPayout(uint256 electionId, address[] memory _adrs, uint256[] memory _pay) public payable returns(bool) {
 
         uint256 paySum;
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
@@ -154,25 +155,33 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
-    function _tokenPayout(uint256 electionId, address[] memory _adrs, uint256[] memory _pay) public returns(bool) {
-        for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
-            ERC20(token).transferFrom(msg.sender, _adrs[i], _pay[i]);
-        }
-        return true;
+    function _tokenPayout() public payable returns(bool) {//uint256 electionId, address[] memory _adrs, uint256[] memory _pay) public returns(bool) {
+        // IERC20(token).approve(msg.sender, elections[electionId].funds);
+        // Transfer token to contract
+        return IERC20(token).transferFrom(msg.sender, address(this), 1000);
+
+        // for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
+        //     ERC20(token).transfer(_adrs[i], _pay[i]);
+        // }
+        // return true;
+    }
+
+    function approveToken() public {
+        IERC20(token).approve(address(this), 1000);
     }
 
     function payoutElection(
         uint256 electionId,
         address[] memory _adrs,
         uint256[] memory _pay
-    ) public payable onlyElectionAdmin(electionId) {
+    ) public onlyElectionAdmin(electionId) {
 
         require( !elections[electionId].active, "Election Still Active!" );
         bool status;
         if (keccak256(bytes(elections[electionId].fundingType)) == keccak256(bytes("ETH"))) {
             status = _ethPayout(electionId, _adrs, _pay);
         } else if (keccak256(bytes(elections[electionId].fundingType)) == keccak256(bytes("GTC"))) {
-            status = _tokenPayout(electionId, _adrs, _pay);
+            //status = tokenPayout(electionId, _adrs, _pay);
         }
 		elections[electionId].paid = status;
         emit ElectionPaid(electionId);

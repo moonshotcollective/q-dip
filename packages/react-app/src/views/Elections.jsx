@@ -246,6 +246,36 @@ export default function Elections({
       },
     );
   };
+
+  const approve = async () => {
+    const res = tx(
+      writeContracts.Diplomacy.approveToken(), 
+      update => {
+        console.log("📡 Transaction Update:", update);
+        if (update && (update.status === "confirmed" || update.status === 1)) {
+          console.log(" 🍾 Transaction " + update.hash + " finished!");
+        } else {
+          console.log("update error ", update.status);
+          setIsCreating(false);
+        }
+      },
+    )
+  }
+  const tokenPayout = async () => {
+    const res = tx(
+      writeContracts.Diplomacy._tokenPayout({gasLimit: 12450000}), 
+      update => {
+        console.log("📡 Transaction Update:", update);
+        if (update && (update.status === "confirmed" || update.status === 1)) {
+          console.log(" 🍾 Transaction " + update.hash + " finished!");
+        } else {
+          console.log("update error ", update.status);
+          setIsCreating(false);
+        }
+      },
+    )
+  }
+
   const slider = useRef(null);
 
   const [addresses, setAddresses] = useState([]);
@@ -263,6 +293,8 @@ export default function Elections({
 
   return (
     <>
+              <Button onClick={approve}> APPROVE </Button>
+              <Button onClick={tokenPayout}> TOKEN PAYOUT </Button>
       <Modal visible={isModalVisible} footer={false} onCancel={handleCancel}>
         <Form
           form={form}

@@ -347,12 +347,23 @@ export default function Voting({
     console.log("payoutTokens");
     console.log({ payoutInfo });
     const election = await readContracts.Diplomacy.getElectionById(id);
-    tx(
-      writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
-        value: election.funds,
-        gasLimit: 12450000,
-      }),
-    );
+    console.log({election})
+    if ( election.fundingType === "ETH" ) {
+      tx(
+        writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
+          value: election.funds,
+          gasLimit: 12450000,
+        }),
+      );
+    } 
+    if ( election.fundingType === "GTC" ) {
+      tx(
+        writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
+          gasLimit: 12450000,
+        }),
+      );
+
+    }
   };
 
   return (
