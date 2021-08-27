@@ -7,7 +7,6 @@ import { Address, Balance } from "../components";
 
 import { useEventListener, useOnBlock } from "../hooks";
 import AddressInput from "../components/AddressInput";
-import EtherInput from "../components/EtherInput";
 
 import { mainnetProvider, blockExplorer } from "../App";
 
@@ -92,10 +91,6 @@ export default function Elections({
       align: "center",
       render: roles =>
         roles.map(r => {
-          //   let color = tag.length > 5 ? 'geekblue' : 'green';
-          //   if (tag === 'loser') {
-          //     color = 'volcano';
-          //   }
           let color = "geekblue";
           if (r == "candidate") {
             color = "green";
@@ -261,7 +256,6 @@ export default function Elections({
     const userAddress = await userSigner.getAddress();
     const tokenContract = writeContracts["UNI"].connect(userSigner);
     const res = tx(
-      // writeContracts.Diplomacy.approveToken(), 
       tokenContract.approve(
         writeContracts.Diplomacy.address,
         newElecAllocatedFunds,
@@ -342,24 +336,8 @@ export default function Elections({
               <Form.Item
                 name="funds"
                 label="Funds"
-                // rules={[{ required: true, pattern: new RegExp(/^[0-9]+$/), message: "ETH Funds Required!" }]}
                 rules={[{ required: true, pattern: new RegExp(/^[0-9]+$/), message: "Funding is Required!" }]}
               >
-                {/* <EtherInput
-                  type="number"
-                  price={price}
-                  value={newElecAllocatedFunds}
-                  placeholder="Enter amount"
-                  onChange={value => {
-                    if (!isNaN(Number(value))) {
-                      let weiValue = toWei(Number(value).toFixed(18).toString());
-                      setNewElecAllocatedFunds(weiValue);
-                      setCanContinue(true);
-                    } else {
-                      setCanContinue(false);
-                    }
-                  }}
-                /> */}
               <Input 
                 addonBefore={selectFundsType} 
                 placeholder="Enter Amount"
@@ -411,7 +389,6 @@ export default function Elections({
                     onClick={() => {
                       slider.current.next();
                     }}
-                    //disabled={!canContinue}
                   >
                     Continue
                   </Button>

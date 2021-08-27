@@ -371,7 +371,7 @@ export default function Voting({
                 💸 Payout
               </Button>
             ),
-            isElectionActive && !alreadyVoted && (
+            isElectionActive && !alreadyVoted && canVoteElection && (
               <Button type="primary" size="large" style={{ margin: 4 }} onClick={() => castVotes()} loading={isVoting}>
                 🗳️ Vote
               </Button>
