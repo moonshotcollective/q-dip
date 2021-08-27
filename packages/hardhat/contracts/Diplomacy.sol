@@ -47,7 +47,8 @@ contract Diplomacy is AccessControl, Ownable {
     bytes32 internal constant ELECTION_CANDIDATE_ROLE =
         keccak256("ELECTION_CANDIDATE_ROLE");
 
-    address private token = 0xaFF4481D10270F50f203E0763e2597776068CBc5;
+    address private token = 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984; // UNISWAP 
+    // 0xaFF4481D10270F50f203E0763e2597776068CBc5; // WEENUS TOKEN
     //0x01BE23585060835E02B77ef475b0Cc51aA1e0709; // CHIANLINK RINKEBY TOKEN
 
     modifier onlyContractAdmin() {

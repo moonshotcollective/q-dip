@@ -19,6 +19,8 @@ export default function Elections({
   address,
   mainnetProvider,
   localProvider,
+  mainnetContracts,
+  userSigner, 
   yourLocalBalance,
   price,
   tx,
@@ -247,9 +249,29 @@ export default function Elections({
     );
   };
 
+  // const tokenAddress = writeContracts.UNI.address;
+  // const userAddress = userSigner.getAddress();
+  // const tokenContract = writeContracts.UNI.connect(userSigner);
+  // approve only if have to pay from self wallet
+  // if (payFromSelf) {
+    // await tx(
+    //   tokenContract.approve(
+    //     writeContracts.QuadraticDiplomacyContract.address,
+    //     ethers.utils.parseUnits(totalRewardAmount.toString(), 18),
+    //   ),
+    // );
+  // }
+
   const approve = async () => {
+  const tokenAddress = writeContracts["UNI"].address;
+  const userAddress = await userSigner.getAddress();
+  const tokenContract = writeContracts["UNI"].connect(userSigner);
     const res = tx(
-      writeContracts.Diplomacy.approveToken(), 
+      // writeContracts.Diplomacy.approveToken(), 
+      tokenContract.approve(
+        writeContracts.Diplomacy.address,
+        10000,
+      ),
       update => {
         console.log("📡 Transaction Update:", update);
         if (update && (update.status === "confirmed" || update.status === 1)) {
