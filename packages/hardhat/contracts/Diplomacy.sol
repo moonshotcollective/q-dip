@@ -157,19 +157,19 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
-    function _tokenPayout() public returns(bool) {//uint256 electionId, address[] memory _adrs, uint256[] memory _pay) public returns(bool) {
-        // IERC20(token).approve(msg.sender, elections[electionId].funds);
+    function _tokenPayout(uint256 electionId, address[] memory _adrs, uint256[] memory _pay) public returns(bool) {
+        
         // Transfer token to contract
-        return IERC20(token).transferFrom(msg.sender, address(this), 1000);
+        IERC20(token).transferFrom(msg.sender, address(this), elections[electionId].funds);
 
-        // for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
-        //     ERC20(token).transfer(_adrs[i], _pay[i]);
-        // }
-        // return true;
+        for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
+            ERC20(token).transfer(_adrs[i], _pay[i]);
+        }
+        return true;
     }
 
-    function approveToken() public {
-        IERC20(token).approve(address(this), 1000);
+    function approveToken(uint256 electionId) public {
+        IERC20(token).approve(address(this), elections[electionId].funds);
     }
 
     function payoutElection(
@@ -183,7 +183,7 @@ contract Diplomacy is AccessControl, Ownable {
         if (keccak256(bytes(elections[electionId].fundingType)) == keccak256(bytes("ETH"))) {
             status = _ethPayout(electionId, _adrs, _pay);
         } else if (keccak256(bytes(elections[electionId].fundingType)) == keccak256(bytes("GTC"))) {
-            //status = tokenPayout(electionId, _adrs, _pay);
+            status = _tokenPayout(electionId, _adrs, _pay);
         }
 		elections[electionId].paid = status;
         emit ElectionPaid(electionId);
