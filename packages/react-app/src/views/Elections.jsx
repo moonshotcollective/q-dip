@@ -350,7 +350,7 @@ export default function Elections({
                     if (fundsType === "ETH") {
                       funds = toWei(Number(e.target.value).toFixed(18).toString());
                     } else if (fundsType === "GTC") {
-                      funds = toWei(Number(e.target.value).toFixed(18).toString()); // * 10^18 for Tokens??
+                      funds = toWei(Number(e.target.value).toFixed(18).toString()); //*10^18 for Tokens?? -> toWei does this, but hacky
                     }
                     setNewElecAllocatedFunds(funds);
                   }

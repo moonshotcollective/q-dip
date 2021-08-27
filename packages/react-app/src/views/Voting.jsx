@@ -49,16 +49,12 @@ export default function Voting({
   const [isElectionActive, setIsElectionActive] = useState(false);
   const [isElecPayoutComplete, setIsElecPayoutComplete] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
+  const [fundType, setFundType] = useState("");
 
   const [electionWeisToPay, setElectionWeisToPay] = useState([]);
   const [electionAddressesToPay, setElectionAddressesToPay] = useState([]);
 
   const voting_columns = [
-    // {
-    //   title: "Name",
-    //   dataIndex: "name",
-    //   key: "created_date",
-    // },
     {
       title: "Address",
       dataIndex: "address",
@@ -111,7 +107,7 @@ export default function Voting({
       render: payout => {
         let ethToPay = fromWei(payout.toString(), "ether");
         ethToPay = parseFloat(ethToPay).toFixed(3);
-        return <>{ethToPay} ETH</>;
+        return <>{ethToPay} {fundType}</>;
       },
     },
   ];
@@ -186,6 +182,7 @@ export default function Voting({
     setCanEndElection(isCreator);
     setIsElectionActive(election.isActive);
     setIsElecPayoutComplete(election.paid);
+    setFundType(election.fundingType);
     const funds = election.funds;
     const ethFund = fromWei(funds.toString(), "ether");
     setTotalFunds(ethFund);
@@ -380,7 +377,7 @@ export default function Voting({
         >
           <h2>Election: {elecName}</h2>
           <Space split={<Divider type="vertical" />}>
-            <h3>Total funds to distribute: {totalFunds} ETH</h3>
+            <h3>Total funds to distribute: {totalFunds} {fundType}</h3>
             <h3>Votes remaining: {remainTokens}</h3>
             <h3>
               Status: {isElectionActive && <span>Active</span>}
