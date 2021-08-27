@@ -47,7 +47,8 @@ contract Diplomacy is AccessControl, Ownable {
     bytes32 internal constant ELECTION_CANDIDATE_ROLE =
         keccak256("ELECTION_CANDIDATE_ROLE");
 
-    address public token = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709; // CHIANLINK RINKEBY TOKEN
+    address private token = 0xaFF4481D10270F50f203E0763e2597776068CBc5;
+    //0x01BE23585060835E02B77ef475b0Cc51aA1e0709; // CHIANLINK RINKEBY TOKEN
 
     modifier onlyContractAdmin() {
 
@@ -155,7 +156,7 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
-    function _tokenPayout() public payable returns(bool) {//uint256 electionId, address[] memory _adrs, uint256[] memory _pay) public returns(bool) {
+    function _tokenPayout() public returns(bool) {//uint256 electionId, address[] memory _adrs, uint256[] memory _pay) public returns(bool) {
         // IERC20(token).approve(msg.sender, elections[electionId].funds);
         // Transfer token to contract
         return IERC20(token).transferFrom(msg.sender, address(this), 1000);
@@ -174,7 +175,7 @@ contract Diplomacy is AccessControl, Ownable {
         uint256 electionId,
         address[] memory _adrs,
         uint256[] memory _pay
-    ) public onlyElectionAdmin(electionId) {
+    ) public payable onlyElectionAdmin(electionId) {
 
         require( !elections[electionId].active, "Election Still Active!" );
         bool status;
