@@ -301,7 +301,7 @@ export default function Elections({
 
   return (
     <>
-      <Modal visible={isModalVisible} footer={false} onCancel={handleCancel}>
+      <Modal visible={isModalVisible} footer={false} onCancel={handleCancel} style={{width: "400px"}}>
         <Form
           layout="vertical"
           form={form}
@@ -504,18 +504,20 @@ export default function Elections({
 
               <Descriptions title="Election Details" column={1} size="small" bordered>
                 <Descriptions.Item label="Name">{newElecName}</Descriptions.Item>
-                <Descriptions.Item label="Allocated Funds (wei)">{newElecAllocatedFunds}</Descriptions.Item>
+                <Descriptions.Item label="Allocated Funds">{newElecAllocatedFunds}</Descriptions.Item>
                 <Descriptions.Item label="Votes/Candidate">{newElecAllocatedVotes}</Descriptions.Item>
                 <Descriptions.Item label="Candidates">
-                  <ul>
-                    {addresses.map(adr => {
-                      return (
-                        <li>
-                          <Address address={adr} fontSize="14pt" />{" "}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <List
+                    style={{ overflow: "auto", height: "100px" }}
+                    itemLayout="horizontal"
+                    bordered
+                    dataSource={addresses}
+                    renderItem={(adr, index) => (
+                  <List.Item>
+                      <Address address={adr} ensProvider={mainnetProvider} fontSize="14pt" />  
+                      </List.Item>
+                    )} />
+                  
                 </Descriptions.Item>
               </Descriptions>
               <div
