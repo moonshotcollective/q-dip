@@ -305,10 +305,16 @@ export default function Elections({
                 placeholder="Enter Amount"
                 size="large"
                 allowClear={true}
-                onChange={value => {
-                  if (!isNaN(Number(value))) {
-                    let weiValue = toWei(Number(value).toFixed(18).toString());
-                    setNewElecAllocatedFunds(weiValue);
+                value={newElecAllocatedFunds}
+                onChange={e => {
+                  if (!isNaN(Number(e.target.value))) {
+                    let funds; 
+                    if (fundsType === "ETH") {
+                      funds = toWei(Number(e.target.value).toFixed(18).toString());
+                    } else if (fundsType === "GTC") {
+                      funds = toWei(Number(e.target.value).toFixed(18).toString()); // * 10^18 for Tokens??
+                    }
+                    setNewElecAllocatedFunds(funds);
                   } else {
                   }
                 }}

@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "prb-math/contracts/PRBMathSD59x18.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract Diplomacy is AccessControl, Ownable {
     using PRBMathSD59x18 for int256;
@@ -44,6 +45,8 @@ contract Diplomacy is AccessControl, Ownable {
         keccak256("ELECTION_ADMIN_ROLE");
     bytes32 internal constant ELECTION_CANDIDATE_ROLE =
         keccak256("ELECTION_CANDIDATE_ROLE");
+
+    address public token = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709; // CHIANLINK RINKEBY TOKEN
 
     modifier onlyContractAdmin() {
 
@@ -136,13 +139,8 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
-    function payoutElection(
-        uint256 electionId,
-        address[] memory _adrs,
-        uint256[] memory _pay
-    ) public payable onlyElectionAdmin(electionId) {
+    function _ethPayout(uint256 electionId, address[] memory _adrs, uint256[] memory _pay) internal returns(bool) {
 
-        require( !elections[electionId].active, "Election Still Active!" );
         uint256 paySum;
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
             require( elections[electionId].candidates[i] == _adrs[i], "Election-Address Mismatch!" );
@@ -151,7 +149,32 @@ contract Diplomacy is AccessControl, Ownable {
         for (uint256 i = 0; i < _pay.length; i++) {
             payable(_adrs[i]).transfer(_pay[i] * 1 wei);
         }
-		elections[electionId].paid = true;
+        // TODO: Find a better way to throw failures and return false on fail
+        return true; 
+
+    }
+
+    function _tokenPayout(uint256 electionId, address[] memory _adrs, uint256[] memory _pay) public returns(bool) {
+        for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
+            ERC20(token).transferFrom(msg.sender, _adrs[i], _pay[i]);
+        }
+        return true;
+    }
+
+    function payoutElection(
+        uint256 electionId,
+        address[] memory _adrs,
+        uint256[] memory _pay
+    ) public payable onlyElectionAdmin(electionId) {
+
+        require( !elections[electionId].active, "Election Still Active!" );
+        bool status;
+        if (keccak256(bytes(elections[electionId].fundingType)) == keccak256(bytes("ETH"))) {
+            status = _ethPayout(electionId, _adrs, _pay);
+        } else if (keccak256(bytes(elections[electionId].fundingType)) == keccak256(bytes("GTC"))) {
+            status = _tokenPayout(electionId, _adrs, _pay);
+        }
+		elections[electionId].paid = status;
         emit ElectionPaid(electionId);
 
     }
