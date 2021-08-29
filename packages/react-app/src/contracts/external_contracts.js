@@ -792,10 +792,6 @@ module.exports = {
         address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
         abi: DAIABI,
       },
-      UNI: {
-        address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
-        abi: ERC20ABI,
-      },
       GTC: {
         address: "0xde30da39c46104798bb5aa3fe8b9e0e1f348163f",
         abi: ERC20ABI,
@@ -810,6 +806,10 @@ module.exports = {
       },
       UNI: {
         address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+        abi: ERC20ABI,
+      },
+      LINK: {
+        address: " 0x01BE23585060835E02B77ef475b0Cc51aA1e0709",
         abi: ERC20ABI,
       }
     },

@@ -5,7 +5,7 @@
       "chainId": "4",
       "contracts": {
         "Diplomacy": {
-          "address": "0x78757e9F84DEd2D4A4373eBb78a224056B48c43C",
+          "address": "0x42800fa4A77A137461C7D0B291b73cb2fd3FD110",
           "abi": [
             {
               "inputs": [],
@@ -193,64 +193,6 @@
                 }
               ],
               "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "electionId",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "address[]",
-                  "name": "_adrs",
-                  "type": "address[]"
-                },
-                {
-                  "internalType": "uint256[]",
-                  "name": "_pay",
-                  "type": "uint256[]"
-                }
-              ],
-              "name": "_ethPayout",
-              "outputs": [
-                {
-                  "internalType": "bool",
-                  "name": "",
-                  "type": "bool"
-                }
-              ],
-              "stateMutability": "payable",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "electionId",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "address[]",
-                  "name": "_adrs",
-                  "type": "address[]"
-                },
-                {
-                  "internalType": "uint256[]",
-                  "name": "_pay",
-                  "type": "uint256[]"
-                }
-              ],
-              "name": "_tokenPayout",
-              "outputs": [
-                {
-                  "internalType": "bool",
-                  "name": "",
-                  "type": "bool"
-                }
-              ],
-              "stateMutability": "nonpayable",
               "type": "function"
             },
             {

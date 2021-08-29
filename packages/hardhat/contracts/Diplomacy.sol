@@ -47,9 +47,11 @@ contract Diplomacy is AccessControl, Ownable {
     bytes32 internal constant ELECTION_CANDIDATE_ROLE =
         keccak256("ELECTION_CANDIDATE_ROLE");
 
-    address private token = 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984; // UNISWAP 
-    // 0xaFF4481D10270F50f203E0763e2597776068CBc5; // WEENUS TOKEN
-    //0x01BE23585060835E02B77ef475b0Cc51aA1e0709; // CHIANLINK RINKEBY TOKEN
+    // address private UNI = 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984; // UNISWAP 
+    // address private WEENUS = 0xaFF4481D10270F50f203E0763e2597776068CBc5; // WEENUS TOKEN
+    address private LINK = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709; // CHIANLINK RINKEBY TOKEN
+
+    address private token = LINK;
 
     modifier onlyContractAdmin() {
 
@@ -74,7 +76,7 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
-    modifier validElectionVote(
+    modifier validBallot(
         uint256 electionId,
         address[] memory _adrs,
         string[] memory _scores
@@ -91,6 +93,9 @@ contract Diplomacy is AccessControl, Ownable {
     uint256 public numElections;
     mapping(uint256 => Election) public elections;
 
+   /**
+    @notice Create a new election  
+    */
     function newElection(
         string memory _name,
         uint256 _funds,
@@ -121,7 +126,8 @@ contract Diplomacy is AccessControl, Ownable {
         uint256 electionId,
         address[] memory _adrs,
         string[] memory _scores // sqrt of votes
-    ) public onlyElectionCandidate(electionId) validElectionVote(electionId, _adrs, _scores) {
+    ) public onlyElectionCandidate(electionId) 
+        validBallot(electionId, _adrs, _scores) {
 
         Election storage election = elections[electionId];
         for (uint256 i = 0; i < _adrs.length; i++) {
@@ -142,23 +148,34 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
-    function _ethPayout(uint256 electionId, address[] memory _adrs, uint256[] memory _pay) public payable returns(bool) {
+    function _ethPayout(
+        uint256 electionId, 
+        address[] 
+        memory _adrs, 
+        uint256[] memory _pay
+    ) internal onlyElectionAdmin(electionId) returns(bool) {
 
         uint256 paySum;
+        bool status;
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
             require( elections[electionId].candidates[i] == _adrs[i], "Election-Address Mismatch!" );
             paySum += _pay[i];
         }
         for (uint256 i = 0; i < _pay.length; i++) {
-            payable(_adrs[i]).transfer(_pay[i] * 1 wei);
+            // NOTE: send instead of transfer to avoid failure throws ?  
+            status = payable(_adrs[i]).send(_pay[i] * 1 wei);
         }
-        // TODO: Find a better way to throw failures and return false on fail
-        return true; 
+        return status; 
 
     }
 
-    function _tokenPayout(uint256 electionId, address[] memory _adrs, uint256[] memory _pay) public returns(bool) {
-        
+    function _tokenPayout(
+        uint256 electionId, 
+        address[] memory _adrs, 
+        uint256[] memory _pay
+    ) internal returns(bool) {
+        // Should an allowance be kept? 
+
         // Transfer token to contract
         IERC20(token).transferFrom(msg.sender, address(this), elections[electionId].funds);
 
@@ -168,10 +185,17 @@ contract Diplomacy is AccessControl, Ownable {
         return true;
     }
 
+    /**
+    @notice User Approve selected token for the Funding Amount
+    */
     function approveToken(uint256 electionId) public {
         IERC20(token).approve(address(this), elections[electionId].funds);
     }
 
+    /**
+    @notice Payout the election with either ETH or selected token  
+    */
+    // TODO: token address in an election would make sense 
     function payoutElection(
         uint256 electionId,
         address[] memory _adrs,
@@ -204,6 +228,9 @@ contract Diplomacy is AccessControl, Ownable {
     }
 
     // Getters
+    /**
+    @notice Get election metadata by the ID  
+    */ 
     function getElectionById(uint256 electionId)
     public view 
     returns (
