@@ -256,6 +256,7 @@ export default function Elections({
 
 
   const approveToken = async () => {
+    // NOTE: Using UNI token for testnet!
     const tokenAddress = writeContracts["UNI"].address;
     const userAddress = await userSigner.getAddress();
     const tokenContract = writeContracts["UNI"].connect(userSigner);

@@ -808,10 +808,6 @@ module.exports = {
         address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
         abi: ERC20ABI,
       },
-      LINK: {
-        address: " 0x01BE23585060835E02B77ef475b0Cc51aA1e0709",
-        abi: ERC20ABI,
-      }
     },
   },
 };
