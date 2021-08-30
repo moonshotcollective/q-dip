@@ -240,8 +240,17 @@ export default function Elections({
     console.log({ newElecAllocatedVotes });
     console.log({ newElecName });
     console.log({ addresses });
+    console.log({ tokenAdr });
+    // Create a new election
     const result = tx(
-      writeContracts.Diplomacy.newElection(newElecName, newElecAllocatedFunds, fundsType, newElecAllocatedVotes, addresses),
+      writeContracts.Diplomacy.newElection(
+        newElecName, 
+        newElecAllocatedFunds, 
+        // fundsType, 
+        tokenAdr,
+        newElecAllocatedVotes, 
+        addresses
+      ),
       update => {
         console.log("📡 Transaction Update:", update);
         if (update && (update.status === "confirmed" || update.status === 1)) {
@@ -282,9 +291,9 @@ export default function Elections({
   const [addresses, setAddresses] = useState([]);
   const [toAddress, setToAddress] = useState("");
 
-  const [canContinue, setCanContinue] = useState(false);
   const [tableDataLoading, setTableDataLoading] = useState(false);
   const [fundsType, setFundsType] = useState("ETH");
+  const [tokenAdr, setTokenAdr] = useState("0x0000000000000000000000000000000000000000");
 
   let table_state = {
     bordered: true,
@@ -294,7 +303,16 @@ export default function Elections({
   const selectFundsType = (
     <Select defaultValue="ETH"
       className="select-funds-type" 
-      onChange={ value => { setFundsType(value); } }>
+      onChange={ value => { 
+        setFundsType(value); 
+        if ( value == "ETH" ) {
+          setTokenAdr("0x0000000000000000000000000000000000000000");
+        } else if (value == "GTC") {
+          // UNISWAP TOKEN ADDRESS FOR TESTING! 
+          const adr = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
+          setTokenAdr(adr);
+        }
+      } }>
       <Option value="ETH">ETH</Option>
       <Option value="GTC">GTC</Option>
     </Select>

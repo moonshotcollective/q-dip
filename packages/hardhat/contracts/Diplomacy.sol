@@ -13,19 +13,22 @@ contract Diplomacy is AccessControl, Ownable {
     using PRBMathSD59x18 for int256;
     using SafeMath for uint256;
 
+    /**
+    @notice Election
+    */
     struct Election {
-        string name; // Creator title/names/etc
-        bool active; // Election status
-		bool paid; //election is paid out
-        uint256 createdAt; // Creation block time-stamp
-        address[] candidates; // Candidates (who can vote/be voted)
-        uint256 funds;
-        string fundingType; // ETH or GTC
-        uint256 votes;  // Number of votes delegated to each candidate
-        address admin;
-        mapping(address => bool) voted; // Voter status
-        mapping(address => string[]) scores; // string of sqrt votes
-        mapping(address => int256) results; // Voter to closed-election result 
+        string name;                            // Creator title/names/etc
+        bool active;                            // Election status
+        bool paid;                              // Election payout status
+        uint256 createdAt;                      // Creation block time-stamp
+        address[] candidates;                   // Candidates (who can vote/be voted)
+        uint256 funds;                          // Allowance of ETH or Tokens for Election
+        address token;                          // Address of Election Token (Eth -> 0x00..)
+        uint256 votes;                          // Number of votes delegated to each candidate
+        address admin;                          // Address of Election Admin
+        mapping(address => bool) voted;         // Voter status
+        mapping(address => string[]) scores;    // string of sqrt votes
+        mapping(address => int256) results;     // Voter to closed-election result 
     }
 
     constructor() {
@@ -46,12 +49,6 @@ contract Diplomacy is AccessControl, Ownable {
         keccak256("ELECTION_ADMIN_ROLE");
     bytes32 internal constant ELECTION_CANDIDATE_ROLE =
         keccak256("ELECTION_CANDIDATE_ROLE");
-
-    address private UNI = 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984; // UNISWAP 
-    // address private WEENUS = 0xaFF4481D10270F50f203E0763e2597776068CBc5; // WEENUS TOKEN
-    //address private LINK = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709; // CHIANLINK RINKEBY TOKEN
-
-    address private token = UNI;
 
     modifier onlyContractAdmin() {
 
@@ -93,28 +90,62 @@ contract Diplomacy is AccessControl, Ownable {
     uint256 public numElections;
     mapping(uint256 => Election) public elections;
 
-   /**
-    @notice Create a new election  
-    */
-    function newElection(
+    function _newEthElection(
         string memory _name,
         uint256 _funds,
-        string memory _type,
         uint256 _votes,
         address[] memory _adrs
-    ) public returns (uint256 electionId) {
-
+    ) internal returns (uint256 electionId) {
+        
         electionId = numElections++;
         Election storage election = elections[electionId];
         election.name = _name;
         election.funds = _funds;
-        election.fundingType = _type;
         election.votes = _votes;
         election.candidates = _adrs;
         election.createdAt = block.timestamp;
         election.active = true;
         election.admin = msg.sender;
 
+    }
+
+    function _newTokenElection(
+        string memory _name,
+        uint256 _funds,
+        address _token,
+        uint256 _votes,
+        address[] memory _adrs
+    ) internal returns (uint256 electionId) {
+
+        electionId = numElections++;
+        Election storage election = elections[electionId];
+        election.name = _name;
+        election.funds = _funds;
+        election.token = _token;
+        election.votes = _votes;
+        election.candidates = _adrs;
+        election.createdAt = block.timestamp;
+        election.active = true;
+        election.admin = msg.sender;
+
+    }
+
+   /**
+    @notice Create a new election  
+    */
+    function newElection(
+        string memory _name,
+        uint256 _funds,
+        address _token,
+        uint256 _votes,
+        address[] memory _adrs
+    ) public returns (uint256 electionId) {
+
+        if ( _token == address(0) ) {
+            electionId = _newEthElection(_name, _funds, _votes, _adrs);
+        } else {
+            electionId = _newTokenElection(_name, _funds, _token, _votes, _adrs);
+        }
         // Setup roles
         setElectionCandidateRoles(_adrs);
         setElectionAdminRole(msg.sender);
@@ -150,8 +181,7 @@ contract Diplomacy is AccessControl, Ownable {
 
     function _ethPayout(
         uint256 electionId, 
-        address[] 
-        memory _adrs, 
+        address[] memory _adrs, 
         uint256[] memory _pay
     ) internal onlyElectionAdmin(electionId) returns(bool) {
 
@@ -177,10 +207,10 @@ contract Diplomacy is AccessControl, Ownable {
         // Should an allowance be kept? 
 
         // Transfer token to contract
-        IERC20(token).transferFrom(msg.sender, address(this), elections[electionId].funds);
+        IERC20(elections[electionId].token).transferFrom(msg.sender, address(this), elections[electionId].funds);
 
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
-            ERC20(token).transfer(_adrs[i], _pay[i]);
+            ERC20(elections[electionId].token).transfer(_adrs[i], _pay[i]);
         }
         return true;
     }
@@ -189,13 +219,12 @@ contract Diplomacy is AccessControl, Ownable {
     @notice User Approve selected token for the Funding Amount
     */
     function approveToken(uint256 electionId) public {
-        IERC20(token).approve(address(this), elections[electionId].funds);
+        IERC20(elections[electionId].token).approve(address(this), elections[electionId].funds);
     }
 
     /**
     @notice Payout the election with either ETH or selected token  
     */
-    // TODO: token address in an election would make sense 
     function payoutElection(
         uint256 electionId,
         address[] memory _adrs,
@@ -204,9 +233,10 @@ contract Diplomacy is AccessControl, Ownable {
 
         require( !elections[electionId].active, "Election Still Active!" );
         bool status;
-        if (keccak256(bytes(elections[electionId].fundingType)) == keccak256(bytes("ETH"))) {
+
+        if ( elections[electionId].token == address(0) ) {
             status = _ethPayout(electionId, _adrs, _pay);
-        } else if (keccak256(bytes(elections[electionId].fundingType)) == keccak256(bytes("GTC"))) {
+        } else {
             status = _tokenPayout(electionId, _adrs, _pay);
         }
 		elections[electionId].paid = status;
@@ -239,7 +269,7 @@ contract Diplomacy is AccessControl, Ownable {
         uint256 n_addr,
         uint256 createdAt,
         uint256 funds,
-        string memory fundingType,
+        address token,
         uint256 votes,
         address admin,
         bool isActive,
@@ -251,11 +281,11 @@ contract Diplomacy is AccessControl, Ownable {
         n_addr = elections[electionId].candidates.length;
         createdAt = elections[electionId].createdAt;
         funds = elections[electionId].funds;
-        fundingType = elections[electionId].fundingType;
+        token = elections[electionId].token;
         votes = elections[electionId].votes;
         admin = elections[electionId].admin;
         isActive = elections[electionId].active;
-		paid = elections[electionId].paid;
+        paid = elections[electionId].paid;
 
     }
 

@@ -3,27 +3,11 @@ import { useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import {
   Button,
-  Card,
-  DatePicker,
   Divider,
-  Input,
-  List,
-  Typography,
-  Progress,
-  Slider,
-  Spin,
-  Switch,
   Table,
-  Modal,
-  Form,
-  Checkbox,
-  Select,
   Space,
 } from "antd";
-import { useEventListener, useOnBlock } from "../hooks";
 import { fromWei, toWei, toBN } from "web3-utils";
-import { BigNumber } from "ethers";
-import { CodeSandboxSquareFilled } from "@ant-design/icons";
 import { Address } from "../components";
 
 export default function Voting({
@@ -31,8 +15,6 @@ export default function Voting({
   mainnetProvider,
   blockExplorer,
   localProvider,
-  yourLocalBalance,
-  price,
   tx,
   readContracts,
   writeContracts,
@@ -50,9 +32,6 @@ export default function Voting({
   const [isElecPayoutComplete, setIsElecPayoutComplete] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
   const [fundType, setFundType] = useState("");
-
-  const [electionWeisToPay, setElectionWeisToPay] = useState([]);
-  const [electionAddressesToPay, setElectionAddressesToPay] = useState([]);
 
   const voting_columns = [
     {
@@ -329,21 +308,20 @@ export default function Voting({
     console.log({ payoutInfo });
     const election = await readContracts.Diplomacy.getElectionById(id);
     console.log({election})
-    if ( election.fundingType === "ETH" ) {
+
+    if ( election.token === "0x0000000000000000000000000000000000000000" ) {
       tx(
         writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
           value: election.funds,
           gasLimit: 12450000,
         }),
-      );
-    } 
-    if ( election.fundingType === "GTC" ) {
+      ); 
+    } else { 
       tx(
         writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
           gasLimit: 12450000,
         }),
       );
-
     }
   };
 
@@ -392,23 +370,7 @@ export default function Voting({
             <Table dataSource={tableDataSrc} columns={voted_columns} pagination={{ pageSize: 5 }} />
           )}
           <Divider />
-          {/* {isElectionActive && !alreadyVoted && (
-            <Button type="primary" size="large" style={{ margin: 4 }} onClick={() => castVotes()}>
-              Vote
-            </Button>
-          )} */}
           {alreadyVoted && <h3>Votes Received! Thanks!</h3>}
-          {/* <Divider />
-          {canEndElection && isElectionActive && (
-            <Button type="danger" size="large" style={{ margin: 4 }} onClick={() => endElection()}>
-              End
-            </Button>
-          )}
-          {canEndElection && !isElectionActive && (
-            <Button type="danger" size="large" style={{ margin: 4 }} onClick={() => payoutTokens()}>
-              Payout
-            </Button>
-          )} */}
         </PageHeader>
       </div>
     </>

@@ -5,7 +5,7 @@
       "chainId": "4",
       "contracts": {
         "Diplomacy": {
-          "address": "0x673A80e0999Ba8312F77493Ee4729F64630C35a6",
+          "address": "0x312E960A613606D15151a034C015e30311776150",
           "abi": [
             {
               "inputs": [],
@@ -291,9 +291,9 @@
                   "type": "uint256"
                 },
                 {
-                  "internalType": "string",
-                  "name": "fundingType",
-                  "type": "string"
+                  "internalType": "address",
+                  "name": "token",
+                  "type": "address"
                 },
                 {
                   "internalType": "uint256",
@@ -358,9 +358,9 @@
                   "type": "uint256"
                 },
                 {
-                  "internalType": "string",
-                  "name": "fundingType",
-                  "type": "string"
+                  "internalType": "address",
+                  "name": "token",
+                  "type": "address"
                 },
                 {
                   "internalType": "uint256",
@@ -599,9 +599,9 @@
                   "type": "uint256"
                 },
                 {
-                  "internalType": "string",
-                  "name": "_type",
-                  "type": "string"
+                  "internalType": "address",
+                  "name": "_token",
+                  "type": "address"
                 },
                 {
                   "internalType": "uint256",
