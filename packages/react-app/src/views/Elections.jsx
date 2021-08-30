@@ -337,9 +337,7 @@ export default function Elections({
                 title="Create A New Election"
                 // subTitle="Election Options"
                 // style={{
-                //   display: "flex",
-                //   justifyContent: "center",
-                //   alignItems: "center",
+                //   text-align: "center";
                 // }}
               />
               <Form.Item

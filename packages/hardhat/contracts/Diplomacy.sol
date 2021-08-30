@@ -1,20 +1,51 @@
+/**                                                                              
+                                            ..                                  
+                                          ,*.                                   
+                                        .**,                                    
+                                       ,***.                                    
+                                 .,.   ,***,                                    
+                               .**,    *****.                                   
+                             .****.    ,*****,                                  
+                           .******,     ,******,                                
+                         .*******.       .********,              .              
+                       ,******.            .*************,,*****.               
+                     ,*****.        ,,.        ,************,.                  
+                  .,****.         ,*****,                                       
+                 ,***,          ,*******,.              ..                      
+               ,**,          .*******,.       ,********.                        
+                           .******,.       .********,                           
+                         .*****,         .*******,                              
+                       ,****,          .******,                                 
+                     ,***,.          .*****,                                    
+                   ,**,.           ./***,                                       
+                  ,,             .***,                                          
+                               .**,                                 
+            __  _______  ____  _   _______ __  ______  ______         
+           /  |/  / __ \/ __ \/ | / / ___// / / / __ \/_  __/         
+          / /|_/ / / / / / / /  |/ /\__ \/ /_/ / / / / / /            
+         / /  / / /_/ / /_/ / /|  /___/ / __  / /_/ / / /             
+        /_/  /_/\____/\____/_/_|_//____/_/_/_/\____/_/_/__    ________
+          / ____/ __ \/ /   / /   / ____/ ____/_  __/  _/ |  / / ____/
+         / /   / / / / /   / /   / __/ / /     / /  / / | | / / __/   
+        / /___/ /_/ / /___/ /___/ /___/ /___  / / _/ /  | |/ / /___   
+        \____/\____/_____/_____/_____/\____/ /_/ /___/  |___/_____/                                                           
+*/
+
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "prb-math/contracts/PRBMathSD59x18.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Diplomacy is AccessControl, Ownable {
-    using PRBMathSD59x18 for int256;
     using SafeMath for uint256;
 
     /**
-    @notice Election
+    @notice Election Definition 
     */
     struct Election {
         string name;                            // Creator title/names/etc
@@ -35,12 +66,7 @@ contract Diplomacy is AccessControl, Ownable {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    event BallotCast(
-        address voter,
-        uint256 electionId,
-        address[] adrs,
-        string[] scores
-    );
+    event BallotCast(address voter, uint256 electionId, address[] adrs, string[] scores);
     event ElectionCreated(address creator, uint256 electionId);
     event ElectionEnded(uint256 electionId);
     event ElectionPaid(uint256 electionId);
@@ -81,7 +107,7 @@ contract Diplomacy is AccessControl, Ownable {
 
         require( elections[electionId].active, "Election Not Active!" );
         require( !elections[electionId].voted[msg.sender], "Sender already voted!" );
-        require ( _scores.length == _adrs.length, "Scores Candidate Count Mismatch!" );
+        require ( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
         //require ( _scores.length == elections[electionId].votes, "Not enough votes sent!" );
         _;
 
@@ -90,6 +116,9 @@ contract Diplomacy is AccessControl, Ownable {
     uint256 public numElections;
     mapping(uint256 => Election) public elections;
 
+    /**
+    @notice New Ethereum Reward Election
+    */
     function _newEthElection(
         string memory _name,
         uint256 _funds,
@@ -109,6 +138,9 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
+    /**
+    @notice New Token Reward Election
+    */
     function _newTokenElection(
         string memory _name,
         uint256 _funds,
@@ -141,9 +173,9 @@ contract Diplomacy is AccessControl, Ownable {
         address[] memory _adrs
     ) public returns (uint256 electionId) {
 
-        if ( _token == address(0) ) {
+        if ( _token == address(0) ) { // 0x00.. --> Eth Election
             electionId = _newEthElection(_name, _funds, _votes, _adrs);
-        } else {
+        } else { // Token Election
             electionId = _newTokenElection(_name, _funds, _token, _votes, _adrs);
         }
         // Setup roles
@@ -153,10 +185,13 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
+    /**
+    @notice Cast a ballot to an election
+    */
     function castBallot(
         uint256 electionId,
         address[] memory _adrs,
-        string[] memory _scores // sqrt of votes
+        string[] memory _scores // submitted sqrt of votes
     ) public onlyElectionCandidate(electionId) 
         validBallot(electionId, _adrs, _scores) {
 
@@ -169,6 +204,9 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
+    /**
+    @notice End an Active Election
+    */
     function endElection(uint256 electionId) 
     public onlyElectionAdmin(electionId) {
 
@@ -179,6 +217,9 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
+    /**
+    @notice Payout the election with ETH 
+    */
     function _ethPayout(
         uint256 electionId, 
         address[] memory _adrs, 
@@ -199,20 +240,24 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
+    /**
+    @notice Payout the election with the selected token  
+    */
     function _tokenPayout(
         uint256 electionId, 
         address[] memory _adrs, 
         uint256[] memory _pay
     ) internal returns(bool) {
+
         // Should an allowance be kept? 
-
-        // Transfer token to contract
+        // Transfer ERC-20 tokens to contract
         IERC20(elections[electionId].token).transferFrom(msg.sender, address(this), elections[electionId].funds);
-
+        // Distribute tokens to each candidate
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
             ERC20(elections[electionId].token).transfer(_adrs[i], _pay[i]);
         }
         return true;
+
     }
 
     /**
@@ -223,7 +268,7 @@ contract Diplomacy is AccessControl, Ownable {
     }
 
     /**
-    @notice Payout the election with either ETH or selected token  
+    @notice Payout the election
     */
     function payoutElection(
         uint256 electionId,
@@ -233,7 +278,6 @@ contract Diplomacy is AccessControl, Ownable {
 
         require( !elections[electionId].active, "Election Still Active!" );
         bool status;
-
         if ( elections[electionId].token == address(0) ) {
             status = _ethPayout(electionId, _adrs, _pay);
         } else {
@@ -257,7 +301,6 @@ contract Diplomacy is AccessControl, Ownable {
         _setupRole(ELECTION_ADMIN_ROLE, adr);
     }
 
-    // Getters
     /**
     @notice Get election metadata by the ID  
     */ 
@@ -312,8 +355,8 @@ contract Diplomacy is AccessControl, Ownable {
 
     }
 
-    function canVote(uint256 electionId, address _sender) 
-    public view returns (bool status) {
+    function canVote(uint256 electionId, address _sender)
+    public view returns (bool status) { // Redundant w/ isElectionCandidate?
 
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
             address candidate = elections[electionId].candidates[i];
@@ -345,4 +388,5 @@ contract Diplomacy is AccessControl, Ownable {
     public view returns (bool) {
         return elections[electionId].voted[_sender];
     }
+
 }
