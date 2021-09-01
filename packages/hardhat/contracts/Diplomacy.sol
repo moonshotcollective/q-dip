@@ -60,9 +60,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         address token;                          // Address of Election Token (Eth -> 0x00..)
         uint256 votes;                          // Number of votes delegated to each candidate
         address admin;                          // Address of Election Admin
-        mapping(address => bool) voted;         // Voter status // --> move all mappings to outside of struct 
-        mapping(address => string[]) scores;    // string of sqrt votes
-        // mapping(address => int256) results;     // Voter to closed-election result 
+        // mapping(address => bool) voted;         // Voter status // --> move all mappings to outside of struct 
+        // mapping(address => string[]) scores;    // string of sqrt votes
     }
     
     mapping(uint256 => mapping(address => bool)) public voted;
@@ -114,7 +113,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     ) {
 
         require( elections[electionId].active, "Election Not Active!" );
-        require( !elections[electionId].voted[msg.sender], "Sender already voted!" );
+        require( !voted[electionId][msg.sender], "Sender already voted!" );
         require ( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
         //require ( _scores.length == elections[electionId].votes, "Not enough votes sent!" );
         _;
@@ -202,11 +201,10 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     ) public onlyElectionCandidate(electionId) 
         validBallot(electionId, _adrs, _scores) {
 
-        Election storage election = elections[electionId];
         for (uint256 i = 0; i < _adrs.length; i++) {
-            election.scores[_adrs[i]].push(_scores[i]); 
+            scores[electionId][_adrs[i]].push(_scores[i]); 
         }
-        election.voted[msg.sender] = true;
+        voted[electionId][msg.sender] = true;
         emit BallotCast(msg.sender, electionId, _adrs, _scores);
 
     }
@@ -240,10 +238,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
             paySum += _pay[i];
         }
         for (uint256 i = 0; i < _pay.length; i++) {
-            // NOTE: send instead of transfer to avoid failure throws ?  
-            // status = payable(_adrs[i]).send(_pay[i] * 1 wei); // call thing austin shared
             // Call returns a boolean value indicating success or failure.
-            // This is the current recommended method to use.
             (bool sent, bytes memory data) = _adrs[i].call{value: _pay[i]}("");
             require(sent, "Failed to send Ether");
         }
@@ -261,12 +256,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         uint256[] memory _pay
     ) internal returns(bool) {
 
-        // Should an allowance be kept? 
-        // Transfer ERC-20 tokens to contract
-        // IERC20(elections[electionId].token).transferFrom(msg.sender, address(this), elections[electionId].funds); // omit
         // Distribute tokens to each candidate
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
-            // ERC20(elections[electionId].token).transfer(_adrs[i], _pay[i]); // safe transfer!
             IERC20(elections[electionId].token).safeTransferFrom(msg.sender, _adrs[i], _pay[i]); // omit
         }
         return true;
@@ -277,6 +268,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     @notice User Approve selected token for the Funding Amount
     */
     function approveToken(uint256 electionId) public {
+        // Safe approve?
         IERC20(elections[electionId].token).approve(address(this), elections[electionId].funds);
     }
 
@@ -348,21 +340,15 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
 
     function getElectionScores(uint256 electionId, address _adr) 
     public view returns (string[] memory) {
-        return elections[electionId].scores[_adr];
+        return scores[electionId][_adr];
     }
-
-    // function getElectionResults(uint256 electionId, address _adr) 
-    // public view returns (int256) {
-    //     // require( !(elections[electionId].active), "Active election!" );
-    //     return elections[electionId].results[_adr];
-    // }
 
     function getElectionVoted(uint256 electionId) 
     public view returns (uint256 count) {
 
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
             address candidate = elections[electionId].candidates[i];
-            if (elections[electionId].voted[candidate]) {
+            if (voted[electionId][candidate]) {
                 count++;
             }
         }
@@ -400,13 +386,13 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
 
     function hasVoted(uint256 electionId, address _sender) 
     public view returns (bool) {
-        return elections[electionId].voted[_sender];
+        return voted[electionId][_sender];
     }
 
     // Function to receive Ether. msg.data must be empty
-    // receive() external payable {}
+    receive() external payable {}
 
-    // // Fallback function is called when msg.data is not empty
-    // fallback() external payable {}
+    // Fallback function is called when msg.data is not empty
+    fallback() external payable {}
 
 }

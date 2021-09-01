@@ -5,7 +5,7 @@
       "chainId": "4",
       "contracts": {
         "Diplomacy": {
-          "address": "0x18880CfBE28e6F81841ea71aEB7f92dDea5AbD6E",
+          "address": "0xEf8275a524eDa6Ac4D44431D6ACE761fEC1132FF",
           "abi": [
             {
               "inputs": [],
@@ -181,6 +181,10 @@
               ],
               "name": "RoleRevoked",
               "type": "event"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "fallback"
             },
             {
               "inputs": [],
@@ -777,6 +781,10 @@
               ],
               "stateMutability": "view",
               "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
             }
           ]
         }
