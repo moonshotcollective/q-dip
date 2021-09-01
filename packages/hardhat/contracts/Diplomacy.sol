@@ -133,7 +133,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         address[] memory _adrs
     ) internal returns (uint256 electionId) {
         
-        electionId = numElections.add(1);
+        electionId = numElections++; // why does .add break it?
         Election storage election = elections[electionId];
         election.name = _name;
         election.funds = _funds;

@@ -481,8 +481,8 @@
       ]
     },
     "/Users/hansmartin/Documents/q-dip/packages/hardhat/contracts/Diplomacy.sol": {
-      "lastModificationDate": 1630454333045,
-      "contentHash": "e9a997c0569b5288bf57fd29cb3f5610",
+      "lastModificationDate": 1630455563805,
+      "contentHash": "39eba1fdf236a30c5889f7f27a26b710",
       "sourceName": "contracts/Diplomacy.sol",
       "solcConfig": {
         "version": "0.8.4",
