@@ -40,9 +40,12 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract Diplomacy is AccessControl, Ownable {
+contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     /**
     @notice Election Definition 
@@ -57,12 +60,17 @@ contract Diplomacy is AccessControl, Ownable {
         address token;                          // Address of Election Token (Eth -> 0x00..)
         uint256 votes;                          // Number of votes delegated to each candidate
         address admin;                          // Address of Election Admin
-        mapping(address => bool) voted;         // Voter status
+        mapping(address => bool) voted;         // Voter status // --> move all mappings to outside of struct 
         mapping(address => string[]) scores;    // string of sqrt votes
-        mapping(address => int256) results;     // Voter to closed-election result 
+        // mapping(address => int256) results;     // Voter to closed-election result 
     }
+    
+    mapping(uint256 => mapping(address => bool)) public voted;
+    mapping(uint256 => mapping(address => string[])) public scores;
 
-    constructor() {
+    mapping(uint256 => Election) public elections;
+    
+    constructor() ReentrancyGuard() {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -114,7 +122,6 @@ contract Diplomacy is AccessControl, Ownable {
     }
 
     uint256 public numElections;
-    mapping(uint256 => Election) public elections;
 
     /**
     @notice New Ethereum Reward Election
@@ -126,7 +133,7 @@ contract Diplomacy is AccessControl, Ownable {
         address[] memory _adrs
     ) internal returns (uint256 electionId) {
         
-        electionId = numElections++;
+        electionId = numElections.add(1);
         Election storage election = elections[electionId];
         election.name = _name;
         election.funds = _funds;
@@ -213,7 +220,7 @@ contract Diplomacy is AccessControl, Ownable {
         Election storage election = elections[electionId];
         require( election.active, "Election Already Ended!" );
         election.active = false;
-        emit ElectionEnded(electionId);
+        emit ElectionEnded(electionId); // look into diff methods 
 
     }
 
@@ -227,16 +234,21 @@ contract Diplomacy is AccessControl, Ownable {
     ) internal onlyElectionAdmin(electionId) returns(bool) {
 
         uint256 paySum;
-        bool status;
+        // bool status;
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
             require( elections[electionId].candidates[i] == _adrs[i], "Election-Address Mismatch!" );
             paySum += _pay[i];
         }
         for (uint256 i = 0; i < _pay.length; i++) {
             // NOTE: send instead of transfer to avoid failure throws ?  
-            status = payable(_adrs[i]).send(_pay[i] * 1 wei);
+            // status = payable(_adrs[i]).send(_pay[i] * 1 wei); // call thing austin shared
+            // Call returns a boolean value indicating success or failure.
+            // This is the current recommended method to use.
+            (bool sent, bytes memory data) = _adrs[i].call{value: _pay[i]}("");
+            require(sent, "Failed to send Ether");
         }
-        return status; 
+        
+        return true; 
 
     }
 
@@ -251,10 +263,11 @@ contract Diplomacy is AccessControl, Ownable {
 
         // Should an allowance be kept? 
         // Transfer ERC-20 tokens to contract
-        IERC20(elections[electionId].token).transferFrom(msg.sender, address(this), elections[electionId].funds);
+        // IERC20(elections[electionId].token).transferFrom(msg.sender, address(this), elections[electionId].funds); // omit
         // Distribute tokens to each candidate
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
-            ERC20(elections[electionId].token).transfer(_adrs[i], _pay[i]);
+            // ERC20(elections[electionId].token).transfer(_adrs[i], _pay[i]); // safe transfer!
+            IERC20(elections[electionId].token).safeTransferFrom(msg.sender, _adrs[i], _pay[i]); // omit
         }
         return true;
 
@@ -274,7 +287,7 @@ contract Diplomacy is AccessControl, Ownable {
         uint256 electionId,
         address[] memory _adrs,
         uint256[] memory _pay
-    ) public payable onlyElectionAdmin(electionId) {
+    ) public payable onlyElectionAdmin(electionId) nonReentrant() {
 
         require( !elections[electionId].active, "Election Still Active!" );
         bool status;
@@ -304,6 +317,7 @@ contract Diplomacy is AccessControl, Ownable {
     /**
     @notice Get election metadata by the ID  
     */ 
+    // Use a struct mapping instead! 
     function getElectionById(uint256 electionId)
     public view 
     returns (
@@ -337,11 +351,11 @@ contract Diplomacy is AccessControl, Ownable {
         return elections[electionId].scores[_adr];
     }
 
-    function getElectionResults(uint256 electionId, address _adr) 
-    public view returns (int256) {
-        // require( !(elections[electionId].active), "Active election!" );
-        return elections[electionId].results[_adr];
-    }
+    // function getElectionResults(uint256 electionId, address _adr) 
+    // public view returns (int256) {
+    //     // require( !(elections[electionId].active), "Active election!" );
+    //     return elections[electionId].results[_adr];
+    // }
 
     function getElectionVoted(uint256 electionId) 
     public view returns (uint256 count) {
@@ -388,5 +402,11 @@ contract Diplomacy is AccessControl, Ownable {
     public view returns (bool) {
         return elections[electionId].voted[_sender];
     }
+
+    // Function to receive Ether. msg.data must be empty
+    // receive() external payable {}
+
+    // // Fallback function is called when msg.data is not empty
+    // fallback() external payable {}
 
 }
