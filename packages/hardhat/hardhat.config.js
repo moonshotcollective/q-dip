@@ -25,7 +25,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 // Select the network you want to deploy to here:
 //
 // const defaultNetwork = "localhost";
-const defaultNetwork = "rinkeby";
+const defaultNetwork = "mumbai";
 
 function mnemonic() {
   try {
@@ -89,6 +89,13 @@ module.exports = {
     xdai: {
       url: "https://rpc.xdaichain.com/",
       gasPrice: 1000000000,
+      accounts: {
+        mnemonic: mnemonic(),
+      },
+    },
+    mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com/",
+      gasPrice: 1100000000,
       accounts: {
         mnemonic: mnemonic(),
       },

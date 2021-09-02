@@ -1,6 +1,6 @@
 import { PageHeader, Carousel, Typography } from "antd";
 import { toWei, fromWei } from "web3-utils";
-import { Button, Divider, Input, InputNumber, List, Table, Modal, Form, Select, Space, Tag, Descriptions} from "antd";
+import { Button, Divider, Input, InputNumber, List, Table, Modal, Form, Select, Space, Tag, Descriptions } from "antd";
 import React, { useState, useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import { Address, Balance } from "../components";
@@ -11,7 +11,7 @@ import AddressInput from "../components/AddressInput";
 import { mainnetProvider, blockExplorer } from "../App";
 
 import "../index.css";
-import 'antd/dist/antd.css';
+import "antd/dist/antd.css";
 
 const { Option } = Select;
 
@@ -20,7 +20,7 @@ export default function Elections({
   mainnetProvider,
   localProvider,
   mainnetContracts,
-  userSigner, 
+  userSigner,
   yourLocalBalance,
   price,
   tx,
@@ -74,9 +74,7 @@ export default function Elections({
       key: "name",
       width: 150,
       align: "center",
-      render: name => (
-        <Typography.Title level={5}>{name}</Typography.Title>
-      ),
+      render: name => <Typography.Title level={5}>{name}</Typography.Title>,
     },
     {
       title: "Admin",
@@ -244,12 +242,12 @@ export default function Elections({
     // Create a new election
     const result = tx(
       writeContracts.Diplomacy.newElection(
-        newElecName, 
-        newElecAllocatedFunds, 
-        // fundsType, 
+        newElecName,
+        newElecAllocatedFunds,
+        // fundsType,
         tokenAdr,
-        newElecAllocatedVotes, 
-        addresses
+        newElecAllocatedVotes,
+        addresses,
       ),
       update => {
         console.log("📡 Transaction Update:", update);
@@ -263,28 +261,25 @@ export default function Elections({
     );
   };
 
-
-  const approveToken = async () => {
-    // NOTE: Using UNI token for testnet!
-    const tokenAddress = writeContracts["UNI"].address;
-    const userAddress = await userSigner.getAddress();
-    const tokenContract = writeContracts["UNI"].connect(userSigner);
-    const res = tx(
-      tokenContract.approve(
-        writeContracts.Diplomacy.address,
-        newElecAllocatedFunds,
-      ),
-      update => {
-        console.log("📡 Transaction Update:", update);
-        if (update && (update.status === "confirmed" || update.status === 1)) {
-          console.log(" 🍾 Transaction " + update.hash + " finished!");
-        } else {
-          console.log("update error ", update.status);
-          setIsCreating(false);
-        }
-      },
-    )
-  }
+  //   const approveToken = async () => {
+  //     // NOTE: Using UNI token for testnet!
+  //     const tokenAddress = writeContracts["UNI"].address;
+  //     const userAddress = await userSigner.getAddress();
+  //     const tokenContract = writeContracts["UNI"].connect(userSigner);
+  //     setApproving(true);
+  //     const res = tx(tokenContract.approve(writeContracts.Diplomacy.address, newElecAllocatedFunds), update => {
+  //       console.log("📡 Transaction Update:", update);
+  //       if (update && (update.status === "confirmed" || update.status === 1)) {
+  //         console.log(" 🍾 Transaction " + update.hash + " finished!");
+  //       } else {
+  //         console.log("update error ", update.status);
+  //         setIsCreating(false);
+  //       }
+  //     });
+  //     await res;
+  //     setApproving(false);
+  //     setNeedsApproved(false);
+  //   };
 
   const slider = useRef(null);
 
@@ -301,18 +296,20 @@ export default function Elections({
   };
 
   const selectFundsType = (
-    <Select defaultValue="ETH"
-      className="select-funds-type" 
-      onChange={ value => { 
-        setFundsType(value); 
-        if ( value == "ETH" ) {
+    <Select
+      defaultValue="ETH"
+      className="select-funds-type"
+      onChange={value => {
+        setFundsType(value);
+        if (value == "ETH") {
           setTokenAdr("0x0000000000000000000000000000000000000000");
         } else if (value == "GTC") {
-          // UNISWAP TOKEN ADDRESS FOR TESTING! 
+          // UNISWAP TOKEN ADDRESS FOR TESTING!
           const adr = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
           setTokenAdr(adr);
         }
-      } }>
+      }}
+    >
       <Option value="ETH">ETH</Option>
       <Option value="GTC">GTC</Option>
     </Select>
@@ -320,7 +317,7 @@ export default function Elections({
 
   return (
     <>
-      <Modal visible={isModalVisible} footer={false} onCancel={handleCancel} style={{width: "400px"}}>
+      <Modal visible={isModalVisible} footer={false} onCancel={handleCancel} style={{ width: "400px" }}>
         <Form
           layout="vertical"
           form={form}
@@ -365,27 +362,27 @@ export default function Elections({
                 label="Funding Allocation"
                 rules={[{ required: true, pattern: new RegExp(/^[.0-9]+$/), message: "Funding is Required!" }]}
               >
-              <Input 
-                addonAfter={selectFundsType} 
-                placeholder="Enter Amount"
-                size="large"
-                allowClear={true}
-                value={newElecAllocatedFunds}
-                style={{
+                <Input
+                  addonAfter={selectFundsType}
+                  placeholder="Enter Amount"
+                  size="large"
+                  allowClear={true}
+                  value={newElecAllocatedFunds}
+                  style={{
                     width: 300,
-                }}
-                onChange={e => {
-                  if (!isNaN(Number(e.target.value))) {
-                    let funds; 
-                    if (fundsType === "ETH") {
-                      funds = toWei(Number(e.target.value).toFixed(18).toString());
-                    } else if (fundsType === "GTC") {
-                      funds = toWei(Number(e.target.value).toFixed(18).toString()); //*10^18 for Tokens?? -> toWei does this, but hacky
+                  }}
+                  onChange={e => {
+                    if (!isNaN(Number(e.target.value))) {
+                      let funds;
+                      if (fundsType === "ETH") {
+                        funds = toWei(Number(e.target.value).toFixed(18).toString());
+                      } else if (fundsType === "GTC") {
+                        funds = toWei(Number(e.target.value).toFixed(18).toString()); //*10^18 for Tokens?? -> toWei does this, but hacky
+                      }
+                      setNewElecAllocatedFunds(funds);
                     }
-                    setNewElecAllocatedFunds(funds);
-                  }
-                }}
-              />
+                  }}
+                />
               </Form.Item>
               <Form.Item
                 name="votes"
@@ -409,11 +406,11 @@ export default function Elections({
               </Form.Item>
 
               <div
-                // style={{
-                //   display: "flex",
-                //   justifyContent: "center",
-                //   alignItems: "center",
-                // }}
+              // style={{
+              //   display: "flex",
+              //   justifyContent: "center",
+              //   alignItems: "center",
+              // }}
               >
                 <Divider>
                   <Button
@@ -490,11 +487,11 @@ export default function Elections({
                 )}
               />
               <div
-                // style={{
-                //   display: "flex",
-                //   justifyContent: "center",
-                //   alignItems: "center",
-                // }}
+              // style={{
+              //   display: "flex",
+              //   justifyContent: "center",
+              //   alignItems: "center",
+              // }}
               >
                 <Divider>
                   <Button
@@ -532,36 +529,38 @@ export default function Elections({
                     bordered
                     dataSource={addresses}
                     renderItem={(adr, index) => (
-                  <List.Item>
-                      <Address address={adr} ensProvider={mainnetProvider} fontSize="14pt" />  
+                      <List.Item>
+                        <Address address={adr} ensProvider={mainnetProvider} fontSize="14pt" />
                       </List.Item>
-                    )} />
-                  
+                    )}
+                  />
                 </Descriptions.Item>
               </Descriptions>
               <div
-                // style={{
-                //   display: "flex",
-                //   justifyContent: "center",
-                //   alignItems: "center",
-                // }}
+              // style={{
+              //   display: "flex",
+              //   justifyContent: "center",
+              //   alignItems: "center",
+              // }}
               >
-                {fundsType !== "ETH" && (
+                {/* {fundsType !== "ETH" && (
                   <Divider>
-                    <Button type="danger" shape="round" onClick={approveToken}>Approve Token</Button>
+                    <Button type="danger" shape="round" onClick={approveToken}>
+                      Approve Token
+                    </Button>
                   </Divider>
-                )}
+                )} */}
                 <Divider>
-                  {!isCreating && (
-                    <Button type="primary" size="large" shape="round" htmlType="submit" className="login-form-button">
-                      Confirm Election
-                    </Button>
-                  )}
-                  {isCreating && (
-                    <Button type="primary" size="large" shape="round" loading>
-                      Creating
-                    </Button>
-                  )}
+                  <Button
+                    type="primary"
+                    size="large"
+                    shape="round"
+                    htmlType="submit"
+                    className="login-form-button"
+                    loading="isCreating"
+                  >
+                    Confirm Election
+                  </Button>
                 </Divider>
               </div>
             </div>
