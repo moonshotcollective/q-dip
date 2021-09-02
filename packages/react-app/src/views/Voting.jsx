@@ -355,6 +355,9 @@ export default function Voting({
   const tokenPayHandler = async opts => {
     console.log(opts);
     console.log({ payoutInfo });
+    const election = await readContracts.Diplomacy.getElectionById(id);
+    console.log({ election });
+
     tx(
       writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
         gasLimit: 12450000,
