@@ -232,7 +232,7 @@ export default function Elections({
     setIsModalVisible(true);
   };
 
-  const onFinish = async () => {
+  const onConfirm = async () => {
     setIsCreating(true);
     console.log({ newElecAllocatedFunds });
     console.log({ newElecAllocatedVotes });
@@ -252,9 +252,9 @@ export default function Elections({
       update => {
         console.log("📡 Transaction Update:", update);
         if (update && (update.status === "confirmed" || update.status === 1)) {
-          console.log(" 🍾 Transaction " + update.hash + " finished!");
-        } else {
-          console.log("update error ", update.status);
+          //   console.log(" 🍾 Transaction " + update.hash + " finished!");
+        }
+        if (update.status === "error") {
           setIsCreating(false);
         }
       },
@@ -315,255 +315,237 @@ export default function Elections({
     </Select>
   );
 
+  const create_form_1 = (
+    <Form
+      layout="vertical"
+      name="basic"
+      autoComplete="off"
+      // labelCol={{ span: 6 }}
+      // wrapperCol={{ span: 16 }}
+      initialValues={{ remember: false }}
+      onFinish={() => {
+        slider.current.next();
+      }}
+    >
+      <Form.Item
+        name="elec_name"
+        label="Election Name"
+        rules={[{ required: true, message: "Please input election name!" }]}
+      >
+        <Input
+          size="large"
+          placeholder="Enter Name"
+          allowClear={true}
+          style={{
+            width: "100%",
+          }}
+          onChange={e => {
+            e.target.value ? setNewElecName(e.target.value) : null;
+          }}
+        />
+      </Form.Item>
+      <Form.Item
+        name="funds"
+        label="Funding Allocation"
+        rules={[{ required: true, pattern: new RegExp(/^[.0-9]+$/), message: "Funding is Required!" }]}
+      >
+        <Input
+          addonAfter={selectFundsType}
+          placeholder="Enter Amount"
+          size="large"
+          allowClear={true}
+          autoComplete="off"
+          value={newElecAllocatedFunds}
+          style={{
+            width: "100%",
+          }}
+          onChange={e => {
+            if (!isNaN(Number(e.target.value))) {
+              let funds;
+              if (fundsType === "ETH") {
+                funds = toWei(Number(e.target.value).toFixed(18).toString());
+              } else if (fundsType === "GTC") {
+                funds = toWei(Number(e.target.value).toFixed(18).toString()); //*10^18 for Tokens?? -> toWei does this, but hacky
+              }
+              setNewElecAllocatedFunds(funds);
+            }
+          }}
+        />
+      </Form.Item>
+      <Form.Item
+        name="votes"
+        label="Vote Allocation"
+        rules={[
+          { required: true, message: "Please input number of votes!" },
+          { pattern: new RegExp(/^[0-9]+$/), message: "Invalid Vote Allocation!" },
+        ]}
+      >
+        <InputNumber
+          size="large"
+          placeholder="1"
+          style={{
+            width: "100%",
+          }}
+          min="1"
+          onChange={value => {
+            setNewElecAllocatedVotes(value);
+          }}
+        />
+      </Form.Item>
+      <Divider>
+        <Form.Item>
+          <Button type="primary" size="large" shape="round" htmlType="submit">
+            Continue
+          </Button>
+        </Form.Item>
+      </Divider>
+    </Form>
+  );
+
+  const create_form_2 = (
+    <Form
+      layout="vertical"
+      name="basic"
+      autoComplete="off"
+      // labelCol={{ span: 6 }}
+      // wrapperCol={{ span: 16 }}
+      initialValues={{ remember: false }}
+      onFinish={() => {
+        slider.current.next();
+      }}
+    >
+      <Form.Item
+        name="candidates"
+        rules={[
+          {
+            validator: (_, value) =>
+              addresses.length != 0
+                ? Promise.resolve()
+                : Promise.reject(new Error("Should add atleast one ENS address")),
+          },
+        ]}
+      >
+        <Space>
+          <AddressInput
+            ensProvider={mainnetProvider}
+            placeholder="Enter ENS name"
+            value={toAddress}
+            onChange={setToAddress}
+          />
+          <Button
+            type="default"
+            size="large"
+            onClick={() => {
+              addresses.push(toAddress);
+              setToAddress("");
+            }}
+          >
+            + Add
+          </Button>
+        </Space>
+      </Form.Item>
+      <Form.Item>
+        <List
+          style={{ overflow: "auto", height: "200px" }}
+          itemLayout="horizontal"
+          bordered
+          dataSource={addresses}
+          renderItem={(item, index) => (
+            <List.Item>
+              <Address address={item} ensProvider={mainnetProvider} fontSize="14pt" />
+              <Button
+                type="link"
+                onClick={async () => {
+                  const updatedAddresses = [...addresses];
+                  updatedAddresses.splice(index, 1);
+                  setAddresses(updatedAddresses);
+                }}
+                size="medium"
+                style={{ marginLeft: "200px" }}
+              >
+                ❌
+              </Button>
+            </List.Item>
+          )}
+        />
+      </Form.Item>
+      <Form.Item>
+        <Divider>
+          <Button type="primary" size="large" shape="round" htmlType="submit">
+            Continue
+          </Button>
+        </Divider>
+      </Form.Item>
+    </Form>
+  );
+
   return (
     <>
       <Modal visible={isModalVisible} footer={false} onCancel={handleCancel} style={{ width: "400px" }}>
-        <Form
-          layout="vertical"
-          form={form}
-          name="basic"
-          // labelCol={{ span: 6 }}
-          // wrapperCol={{ span: 16 }}
-          initialValues={{ remember: false }}
-          onFinish={onFinish}
-        >
-          <Carousel ref={slider} afterChange={() => {}} speed="300" dots={false}>
-            <div>
-              <PageHeader
-                ghost={false}
-                title="Create A New Election"
-                // subTitle="Election Options"
-                // style={{
-                //   text-align: "center";
-                // }}
-              />
-              <Form.Item
-                name="elec_name"
-                label="Election Name"
-                rules={[{ required: true, message: "Please input election name!" }]}
-              >
-                <Input
-                  size="large"
-                  placeholder="Enter Name"
-                  autoComplete="false"
-                  allowClear={true}
-                  style={{
-                    width: 300,
-                  }}
-                  onChange={e => {
-                    e.target.value ? setNewElecName(e.target.value) : null;
-                  }}
+        <Carousel ref={slider} afterChange={() => {}} speed="300" dots={false}>
+          <div>
+            <PageHeader ghost={false} title="Create A New Election" />
+            {create_form_1}
+          </div>
+
+          <div>
+            <PageHeader
+              ghost={false}
+              onBack={() => {
+                slider.current.prev();
+              }}
+              title="Add Election Candidates"
+              // subTitle="Add Election Candidates"
+            />
+            {create_form_2}
+          </div>
+
+          <div>
+            <PageHeader
+              ghost={false}
+              onBack={() => {
+                slider.current.prev();
+              }}
+              title="Confirm Election Details"
+              // subTitle="Review Election Details"
+            />
+
+            <Descriptions title="Election Details" column={1} size="small" bordered>
+              <Descriptions.Item label="Name">{newElecName}</Descriptions.Item>
+              <Descriptions.Item label="Allocated Funds">{newElecAllocatedFunds}</Descriptions.Item>
+              <Descriptions.Item label="Votes/Candidate">{newElecAllocatedVotes}</Descriptions.Item>
+              <Descriptions.Item label="Candidates">
+                <List
+                  style={{ overflow: "auto", height: "100px" }}
+                  itemLayout="horizontal"
+                  bordered
+                  dataSource={addresses}
+                  renderItem={(adr, index) => (
+                    <List.Item>
+                      <Address address={adr} ensProvider={mainnetProvider} fontSize="14pt" />
+                    </List.Item>
+                  )}
                 />
-              </Form.Item>
-              <Form.Item
-                name="funds"
-                label="Funding Allocation"
-                rules={[{ required: true, pattern: new RegExp(/^[.0-9]+$/), message: "Funding is Required!" }]}
-              >
-                <Input
-                  addonAfter={selectFundsType}
-                  placeholder="Enter Amount"
-                  size="large"
-                  allowClear={true}
-                  value={newElecAllocatedFunds}
-                  style={{
-                    width: 300,
-                  }}
-                  onChange={e => {
-                    if (!isNaN(Number(e.target.value))) {
-                      let funds;
-                      if (fundsType === "ETH") {
-                        funds = toWei(Number(e.target.value).toFixed(18).toString());
-                      } else if (fundsType === "GTC") {
-                        funds = toWei(Number(e.target.value).toFixed(18).toString()); //*10^18 for Tokens?? -> toWei does this, but hacky
-                      }
-                      setNewElecAllocatedFunds(funds);
-                    }
-                  }}
-                />
-              </Form.Item>
-              <Form.Item
-                name="votes"
-                label="Vote Allocation"
-                rules={[
-                  { required: true, message: "Please input number of votes!" },
-                  { pattern: new RegExp(/^[0-9]+$/), message: "Invalid Vote Allocation!" },
-                ]}
-              >
-                <InputNumber
-                  size="large"
-                  placeholder="1"
-                  style={{
-                    width: 300,
-                  }}
-                  min="1"
-                  onChange={value => {
-                    setNewElecAllocatedVotes(value);
-                  }}
-                />
-              </Form.Item>
-
-              <div
-              // style={{
-              //   display: "flex",
-              //   justifyContent: "center",
-              //   alignItems: "center",
-              // }}
-              >
-                <Divider>
-                  <Button
-                    type="primary"
-                    size="large"
-                    shape="round"
-                    onClick={() => {
-                      slider.current.next();
-                    }}
-                  >
-                    Continue
-                  </Button>
-                </Divider>
-              </div>
-            </div>
-
+              </Descriptions.Item>
+            </Descriptions>
             <div>
-              <PageHeader
-                ghost={false}
-                onBack={() => {
-                  slider.current.prev();
-                }}
-                title="Add Election Candidates"
-                // subTitle="Add Election Candidates"
-              />
-              <Form.Item
-                name="candidates"
-                // style={{
-                //   display: "flex",
-                //   justifyContent: "left",
-                //   alignItems: "center",
-                // }}
-              >
-                <Space>
-                  <AddressInput
-                    ensProvider={mainnetProvider}
-                    placeholder="Enter address"
-                    value={toAddress}
-                    onChange={setToAddress}
-                  />
-                  <Button
-                    type="default"
-                    size="large"
-                    onClick={() => {
-                      addresses.push(toAddress);
-                      setToAddress("");
-                    }}
-                  >
-                    + Add
-                  </Button>
-                </Space>
-              </Form.Item>
-              <List
-                style={{ overflow: "auto", height: "200px" }}
-                itemLayout="horizontal"
-                bordered
-                dataSource={addresses}
-                renderItem={(item, index) => (
-                  <List.Item>
-                    <Address address={item} ensProvider={mainnetProvider} fontSize="14pt" />
-                    <Button
-                      type="link"
-                      onClick={async () => {
-                        const updatedAddresses = [...addresses];
-                        updatedAddresses.splice(index, 1);
-                        setAddresses(updatedAddresses);
-                      }}
-                      size="medium"
-                      style={{ marginLeft: "200px" }}
-                    >
-                      ❌
-                    </Button>
-                  </List.Item>
-                )}
-              />
-              <div
-              // style={{
-              //   display: "flex",
-              //   justifyContent: "center",
-              //   alignItems: "center",
-              // }}
-              >
-                <Divider>
-                  <Button
-                    type="primary"
-                    size="large"
-                    shape="round"
-                    onClick={() => {
-                      slider.current.next();
-                    }}
-                  >
-                    Continue
-                  </Button>
-                </Divider>
-              </div>
+              <Divider>
+                <Button
+                  type="primary"
+                  size="large"
+                  shape="round"
+                  className="login-form-button"
+                  loading={isCreating}
+                  onClick={() => {
+                    onConfirm();
+                  }}
+                >
+                  Confirm Election
+                </Button>
+              </Divider>
             </div>
-
-            <div>
-              <PageHeader
-                ghost={false}
-                onBack={() => {
-                  slider.current.prev();
-                }}
-                title="Confirm Election Details"
-                // subTitle="Review Election Details"
-              />
-
-              <Descriptions title="Election Details" column={1} size="small" bordered>
-                <Descriptions.Item label="Name">{newElecName}</Descriptions.Item>
-                <Descriptions.Item label="Allocated Funds">{newElecAllocatedFunds}</Descriptions.Item>
-                <Descriptions.Item label="Votes/Candidate">{newElecAllocatedVotes}</Descriptions.Item>
-                <Descriptions.Item label="Candidates">
-                  <List
-                    style={{ overflow: "auto", height: "100px" }}
-                    itemLayout="horizontal"
-                    bordered
-                    dataSource={addresses}
-                    renderItem={(adr, index) => (
-                      <List.Item>
-                        <Address address={adr} ensProvider={mainnetProvider} fontSize="14pt" />
-                      </List.Item>
-                    )}
-                  />
-                </Descriptions.Item>
-              </Descriptions>
-              <div
-              // style={{
-              //   display: "flex",
-              //   justifyContent: "center",
-              //   alignItems: "center",
-              // }}
-              >
-                {/* {fundsType !== "ETH" && (
-                  <Divider>
-                    <Button type="danger" shape="round" onClick={approveToken}>
-                      Approve Token
-                    </Button>
-                  </Divider>
-                )} */}
-                <Divider>
-                  <Button
-                    type="primary"
-                    size="large"
-                    shape="round"
-                    htmlType="submit"
-                    className="login-form-button"
-                    loading="isCreating"
-                  >
-                    Confirm Election
-                  </Button>
-                </Divider>
-              </div>
-            </div>
-          </Carousel>
-        </Form>
+          </div>
+        </Carousel>
       </Modal>
 
       <div
