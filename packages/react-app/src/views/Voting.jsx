@@ -309,18 +309,28 @@ export default function Voting({
     const election = await readContracts.Diplomacy.getElectionById(id);
     console.log({election})
 
-    if ( election.token === "0x0000000000000000000000000000000000000000" ) {
+    if ( election.token === "0x0000000000000000000000000000000000000000" ) { // Handle ETH elections
       tx(
-        writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
-          value: election.funds,
-          gasLimit: 12450000,
-        }),
+        writeContracts.Diplomacy.payoutElection(
+          id, 
+          payoutInfo.candidates, 
+          payoutInfo.payout, 
+          {
+            value: election.funds,
+            gasLimit: 12450000,
+          }
+        ),
       ); 
-    } else { 
+    } else { // Handle Token Elections
       tx(
-        writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
-          gasLimit: 12450000,
-        }),
+        writeContracts.Diplomacy.payoutElection(
+          id, 
+          payoutInfo.candidates, 
+          payoutInfo.payout, 
+          {
+            gasLimit: 12450000,
+          }
+        ),
       );
     }
   };

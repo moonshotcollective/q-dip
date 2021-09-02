@@ -60,12 +60,10 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         address token;                          // Address of Election Token (Eth -> 0x00..)
         uint256 votes;                          // Number of votes delegated to each candidate
         address admin;                          // Address of Election Admin
-        // mapping(address => bool) voted;         // Voter status // --> move all mappings to outside of struct 
-        // mapping(address => string[]) scores;    // string of sqrt votes
     }
     
-    mapping(uint256 => mapping(address => bool)) public voted;
-    mapping(uint256 => mapping(address => string[])) public scores;
+    mapping(uint256 => mapping(address => bool)) public voted;      // Election-candidate vote status
+    mapping(uint256 => mapping(address => string[])) public scores; // Election-candidate submitted scores
 
     mapping(uint256 => Election) public elections;
     
@@ -185,8 +183,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
             electionId = _newTokenElection(_name, _funds, _token, _votes, _adrs);
         }
         // Setup roles
-        setElectionCandidateRoles(_adrs);
-        setElectionAdminRole(msg.sender);
+        _setElectionCandidateRoles(_adrs);
+        _setElectionAdminRole(msg.sender);
         emit ElectionCreated(msg.sender, electionId);
 
     }
@@ -294,7 +292,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     }
 
     // Setters
-    function setElectionCandidateRoles(address[] memory _adrs) internal {
+    function _setElectionCandidateRoles(address[] memory _adrs) internal {
 
         for (uint256 i = 0; i < _adrs.length; i++) {
             _setupRole(ELECTION_CANDIDATE_ROLE, _adrs[i]);
@@ -302,7 +300,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
 
     }
 
-    function setElectionAdminRole(address adr) internal {
+    function _setElectionAdminRole(address adr) internal {
         _setupRole(ELECTION_ADMIN_ROLE, adr);
     }
 
