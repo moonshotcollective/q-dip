@@ -213,6 +213,7 @@ export default function Elections({
       let admin = election.admin;
       let roles = [];
       const isAdmin = election.admin == address;
+      //   console.log({ address });
       if (isAdmin) {
         roles.push("admin");
       }
@@ -328,7 +329,7 @@ export default function Elections({
   const create_form_1 = (
     <Form
       layout="vertical"
-      name="basic"
+      name="form"
       autoComplete="off"
       // labelCol={{ span: 6 }}
       // wrapperCol={{ span: 16 }}

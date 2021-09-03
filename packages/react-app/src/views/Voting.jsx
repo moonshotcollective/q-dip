@@ -25,6 +25,8 @@ export default function Voting({
   const [remainTokens, setRemainTokens] = useState(0);
   const [alreadyVoted, setAlreadyVoted] = useState(false);
   const [canEndElection, setCanEndElection] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
   const [canVoteElection, setCanVoteElection] = useState(false);
   const [isElectionActive, setIsElectionActive] = useState(false);
   const [isElecPayoutComplete, setIsElecPayoutComplete] = useState(false);
@@ -244,6 +246,7 @@ export default function Voting({
   const castVotes = async () => {
     console.log("castVotes");
     setIsVoting(true);
+
     const election = await readContracts.Diplomacy.getElectionById(id);
     const adrs = election.candidates; // hmm...
     const votes = [];
@@ -333,8 +336,13 @@ export default function Voting({
   const endElection = async () => {
     calculatePayout();
     console.log("endElection");
+    setIsEnding(true);
     const result = tx(writeContracts.Diplomacy.endElection(id), update => {
-      console.log("📡 Transaction Update:", update);
+      if (update && update.code == 4001) {
+        setIsEnding(false);
+        console.log(update.message);
+        return;
+      }
       if (update && (update.status === "confirmed" || update.status === 1)) {
         console.log(" 🍾 Transaction " + update.hash + " finished!");
       }
@@ -343,15 +351,35 @@ export default function Voting({
   };
 
   const ethPayHandler = async () => {
-    tx(
-      writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
-        value: election.funds,
-        gasLimit: 12450000,
-      }),
+    setIsPaying(true);
+    const result = tx(
+      writeContracts.Diplomacy.payoutElection(
+        id,
+        payoutInfo.candidates,
+        payoutInfo.payout,
+        {
+          value: election.funds,
+          gasLimit: 12450000,
+        },
+        update => {
+          if (update && update.code == 4001) {
+            setIsPaying(false);
+            console.log(update.message);
+            return;
+          }
+          if (update && (update.status === "confirmed" || update.status === 1)) {
+            console.log(" 🍾 Transaction " + update.hash + " finished!");
+          } else if (update.status === 0) {
+            setIsPaying(false);
+            return;
+          }
+        },
+      ),
     );
   };
 
   const tokenPayHandler = async opts => {
+    setIsPaying(true);
     console.log(opts);
     console.log({ payoutInfo });
     const election = await readContracts.Diplomacy.getElectionById(id);
@@ -376,7 +404,14 @@ export default function Voting({
           title={elecName}
           extra={[
             canEndElection && isElectionActive && (
-              <Button type="danger" size="large" shape="round" style={{ margin: 4 }} onClick={() => endElection()}>
+              <Button
+                type="danger"
+                size="large"
+                shape="round"
+                style={{ margin: 4 }}
+                onClick={() => endElection()}
+                loading={isEnding}
+              >
                 🔒 End
               </Button>
             ),
@@ -401,7 +436,14 @@ export default function Voting({
               />
             ),
             isElectionActive && !alreadyVoted && canVoteElection && (
-              <Button type="primary" size="large" shape="round" style={{ margin: 4 }} onClick={() => castVotes()} loading={isVoting}>
+              <Button
+                type="primary"
+                size="large"
+                shape="round"
+                style={{ margin: 4 }}
+                onClick={() => castVotes()}
+                loading={isVoting}
+              >
                 🗳️ Vote
               </Button>
             ),

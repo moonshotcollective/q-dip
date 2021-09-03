@@ -67,9 +67,18 @@ export default function PayButton({
     return token.toUpperCase() === "ETH";
   };
 
+  const isMATIC = () => {
+    if (!token) return "MATIC";
+    return token.toUpperCase() === "MATIC";
+  };
+
   const handlePay = async () => {
     const payParams = { token, ...tokenInfo[token] };
     if (isETH()) {
+      setStatus(4);
+      await ethPayHandler();
+      setStatus(3);
+    } else if (isMATIC()) {
       setStatus(4);
       await ethPayHandler();
       setStatus(3);
@@ -96,9 +105,12 @@ export default function PayButton({
   }, [amount]);
 
   useEffect(() => {
-    if (!isETH()) {
+    console.log(token);
+    if (!isETH() && !isMATIC()) {
       setStatus(0);
       refreshTokenDetails();
+    } else if (isMATIC()) {
+      refreshETH();
     } else {
       refreshETH();
     }
