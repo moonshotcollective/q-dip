@@ -376,8 +376,8 @@ export default function Voting({
           title={elecName}
           extra={[
             canEndElection && isElectionActive && (
-              <Button type="danger" size="large" style={{ margin: 4 }} onClick={() => endElection()}>
-                End
+              <Button type="danger" size="large" shape="round" style={{ margin: 4 }} onClick={() => endElection()}>
+                🔒 End
               </Button>
             ),
             // <Button type="danger" size="large" style={{ margin: 4 }} onClick={() => payoutTokens()}>
@@ -385,12 +385,9 @@ export default function Voting({
             // </Button>,
             canEndElection && !isElectionActive && !isElecPayoutComplete && (
               <PayButton
-                // type="danger"
-                // size="large"
-                // shape="round"
                 style={{ marginTop: 20 }}
                 token={token}
-                appName="D-Tips"
+                appName="Quadratic Diplomacy"
                 tokenListHandler={tokens => setAvailableTokens(tokens)}
                 callerAddress={address}
                 maxApproval={amount}
@@ -404,7 +401,7 @@ export default function Voting({
               />
             ),
             isElectionActive && !alreadyVoted && canVoteElection && (
-              <Button type="primary" size="large" style={{ margin: 4 }} onClick={() => castVotes()} loading={isVoting}>
+              <Button type="primary" size="large" shape="round" style={{ margin: 4 }} onClick={() => castVotes()} loading={isVoting}>
                 🗳️ Vote
               </Button>
             ),
