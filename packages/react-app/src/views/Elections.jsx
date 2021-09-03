@@ -35,6 +35,7 @@ export default function Elections({
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [erc20, setErc20] = useState([]);
 
   const [form] = Form.useForm();
 
@@ -153,13 +154,21 @@ export default function Elections({
     addEventListener(contractName, "ElectionCreated", onElectionCreated);
     addEventListener(contractName, "BallotCast", onBallotCast);
     updateView();
+
+    const erc20List = Object.keys(readContracts).reduce((acc, contract) => {
+      if (typeof readContracts[contract].decimals !== "undefined") {
+        acc.push(contract);
+      }
+      return acc;
+    }, []);
+    setErc20(erc20List);
   };
 
   const addEventListener = async (contractName, eventName, callback) => {
     await readContracts[contractName].removeListener(eventName);
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
-      if (eventBlockNum >= localProvider._lastBlockNumber) {
+      if (eventBlockNum >= localProvider._lastBlockNumber - 1) {
         callback();
       }
     });
@@ -305,7 +314,7 @@ export default function Elections({
           setTokenAdr("0x0000000000000000000000000000000000000000");
         } else if (value == "GTC") {
           // UNISWAP TOKEN ADDRESS FOR TESTING!
-          const adr = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
+          const adr = "0x326C977E6efc84E512bB9C30f76E30c160eD06FB";
           setTokenAdr(adr);
         }
       }}

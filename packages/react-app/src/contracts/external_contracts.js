@@ -810,4 +810,12 @@ module.exports = {
       },
     },
   },
+  80001: {
+    contracts: {
+      LINK: {
+        address: "0x326C977E6efc84E512bB9C30f76E30c160eD06FB",
+        abi: ERC20ABI,
+      },
+    },
+  },
 };
