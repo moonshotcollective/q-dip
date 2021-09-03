@@ -35,6 +35,7 @@ export default function Elections({
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [erc20, setErc20] = useState([]);
 
   const [form] = Form.useForm();
 
@@ -153,13 +154,21 @@ export default function Elections({
     addEventListener(contractName, "ElectionCreated", onElectionCreated);
     addEventListener(contractName, "BallotCast", onBallotCast);
     updateView();
+
+    const erc20List = Object.keys(readContracts).reduce((acc, contract) => {
+      if (typeof readContracts[contract].decimals !== "undefined") {
+        acc.push(contract);
+      }
+      return acc;
+    }, []);
+    setErc20(erc20List);
   };
 
   const addEventListener = async (contractName, eventName, callback) => {
     await readContracts[contractName].removeListener(eventName);
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
-      if (eventBlockNum >= localProvider._lastBlockNumber) {
+      if (eventBlockNum >= localProvider._lastBlockNumber - 1) {
         callback();
       }
     });
@@ -287,7 +296,7 @@ export default function Elections({
   const [toAddress, setToAddress] = useState("");
 
   const [tableDataLoading, setTableDataLoading] = useState(false);
-  const [fundsType, setFundsType] = useState("MATIC");
+  const [fundsType, setFundsType] = useState("ETH");
   const [tokenAdr, setTokenAdr] = useState("0x0000000000000000000000000000000000000000");
 
   let table_state = {
@@ -297,21 +306,20 @@ export default function Elections({
 
   const selectFundsType = (
     <Select
-      defaultValue="MATIC"
+      defaultValue="ETH"
       className="select-funds-type"
       onChange={value => {
         setFundsType(value);
-        if (value == "MATIC") {
+        if (value == "ETH") {
           setTokenAdr("0x0000000000000000000000000000000000000000");
         } else if (value == "GTC") {
           // UNISWAP TOKEN ADDRESS FOR TESTING!
-          // const adr = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
-          const adr = "0x326c977e6efc84e512bb9c30f76e30c160ed06fb";
+          const adr = "0x326C977E6efc84E512bB9C30f76E30c160eD06FB";
           setTokenAdr(adr);
         }
       }}
     >
-      <Option value="MATIC">MATIC</Option>
+      <Option value="ETH">ETH</Option>
       <Option value="GTC">GTC</Option>
     </Select>
   );
@@ -363,7 +371,7 @@ export default function Elections({
           onChange={e => {
             if (!isNaN(Number(e.target.value))) {
               let funds;
-              if (fundsType === "MATIC") {
+              if (fundsType === "ETH") {
                 funds = toWei(Number(e.target.value).toFixed(18).toString());
               } else if (fundsType === "GTC") {
                 funds = toWei(Number(e.target.value).toFixed(18).toString()); //*10^18 for Tokens?? -> toWei does this, but hacky

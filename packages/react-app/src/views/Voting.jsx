@@ -127,7 +127,6 @@ export default function Voting({
     let fundingType = "MATIC";
     if (election.token != "0x0000000000000000000000000000000000000000") {
       fundingType = getTokenName(election.token);
-      console.log({ fundingType });
     }
     setToken(fundingType);
     setFundType(fundingType);
@@ -139,7 +138,7 @@ export default function Voting({
     addEventListener(contractName, "BallotCast", onBallotCast);
     addEventListener(contractName, "ElectionEnded", onElectionEnded);
     addEventListener(contractName, "ElectionPaid", onElectionPaid);
-    // console.log("added event listeners");
+    console.log("added event listeners");
 
     const erc20List = Object.keys(readContracts).reduce((acc, contract) => {
       if (typeof readContracts[contract].decimals !== "undefined") {
@@ -154,7 +153,7 @@ export default function Voting({
     await readContracts[contractName].removeListener(eventName);
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
-      if (eventBlockNum >= localProvider._lastBlockNumber) {
+      if (eventBlockNum >= localProvider._lastBlockNumber - 1) {
         let msg = args.pop().args;
         callback(msg);
       }
