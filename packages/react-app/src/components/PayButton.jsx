@@ -127,7 +127,7 @@ export default function PayButton({
         text = `Approving ${token}...`;
         break;
       case 3:
-        text = `Distribute ${token}`;
+        text = `💸 Distribute ${token}`;
         break;
       case 4:
         text = `Distributing ${token}...`;
@@ -148,6 +148,9 @@ export default function PayButton({
       disabled={disabledStatus.indexOf(status) >= 0 || !(amount > 0)}
       loading={loadingStatus.indexOf(status) >= 0}
       style={style}
+      type="danger"
+      shape="round"
+      size="large"
       onClick={handlePay}
     >
       {renderButtonText()}

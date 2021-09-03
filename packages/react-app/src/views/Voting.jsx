@@ -17,7 +17,7 @@ export default function Voting({
 }) {
   let { id } = useParams();
   const [tableDataSrc, setTableDataSrc] = useState([]);
-  const [token, setToken] = useState("ETH");
+  const [token, setToken] = useState("MATIC");
   const [election, setElection] = useState();
   const [elecName, setElecName] = useState("");
   const [totalVotes, setTotalVotes] = useState(0);
@@ -124,7 +124,7 @@ export default function Voting({
 
   useEffect(() => {
     if (!election) return;
-    let fundingType = "ETH";
+    let fundingType = "MATIC";
     if (election.token != "0x0000000000000000000000000000000000000000") {
       fundingType = getTokenName(election.token);
       console.log({ fundingType });
@@ -386,6 +386,9 @@ export default function Voting({
             // </Button>,
             canEndElection && !isElectionActive && !isElecPayoutComplete && (
               <PayButton
+                // type="danger"
+                // size="large"
+                // shape="round"
                 style={{ marginTop: 20 }}
                 token={token}
                 appName="D-Tips"

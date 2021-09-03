@@ -30,12 +30,12 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   //   value: ethers.utils.parseEther("1"),
   // });
 
-  await Diplomacy.newElection("Build #1", 1, "ETH", 10, [
-    "0x76c48E1F02774C40372a3497620D946136136172",
-    "0x01684C57AE8a4226271068210Ce1cCED865a5AfC",
-    "0xf5De4337Ac5332aF11BffbeC45D950bDDBc1493F",
-    "0x4E53E14de4e264AC2C3fF501ed3Bd6c4Ad63B9A1",
-  ]);
+  // await Diplomacy.newElection("Build #1", 1, "ETH", 10, [
+  //   "0x76c48E1F02774C40372a3497620D946136136172",
+  //   "0x01684C57AE8a4226271068210Ce1cCED865a5AfC",
+  //   "0xf5De4337Ac5332aF11BffbeC45D950bDDBc1493F",
+  //   "0x4E53E14de4e264AC2C3fF501ed3Bd6c4Ad63B9A1",
+  // ]);
 
   /*
   //If you want to send value to an address from the deployer
