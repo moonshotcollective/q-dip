@@ -410,7 +410,15 @@ function App(props) {
                 this <Contract/> component will automatically parse your ABI
                 and give you a form to interact with it locally
             */}
-            <Redirect to="/elections" />
+            {/* <Redirect to="/elections" /> */}
+
+            <Contract
+              name="Diplomacy"
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
           </Route>
           <Route path="/voting/:id">
             <Voting

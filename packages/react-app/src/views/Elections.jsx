@@ -254,20 +254,22 @@ export default function Elections({
       writeContracts.Diplomacy.newElection(
         newElecName,
         newElecAllocatedFunds,
-        // fundsType,
         tokenAdr,
         newElecAllocatedVotes,
         addresses,
+        {
+          gasLimit: 12450000,
+        }
       ),
-      update => {
-        console.log("📡 Transaction Update:", update);
-        if (update && (update.status === "confirmed" || update.status === 1)) {
-          //   console.log(" 🍾 Transaction " + update.hash + " finished!");
-        }
-        if (update.status === "error") {
-          setIsCreating(false);
-        }
-      },
+      // update => {
+      //   console.log("📡 Transaction Update:", update);
+      //   if (update && (update.status === "confirmed" || update.status === 1)) {
+      //     //   console.log(" 🍾 Transaction " + update.hash + " finished!");
+      //   }
+      //   if (update.status === "error") {
+      //     setIsCreating(false);
+      //   }
+      // },
     );
   };
 

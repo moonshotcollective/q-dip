@@ -360,7 +360,8 @@ export default function Voting({
         {
           value: election.funds,
           gasLimit: 12450000,
-        },
+        }
+      ), 
         update => {
           if (update && update.code == 4001) {
             setIsPaying(false);
@@ -374,7 +375,6 @@ export default function Voting({
             return;
           }
         },
-      ),
     );
   };
 
