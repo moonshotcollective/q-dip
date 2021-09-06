@@ -168,6 +168,8 @@ export default function Voting({
     if (alreadyVoted || msg.voter == address) {
       updateView();
       setIsVoting(false);
+    } else {
+      updateView();
     }
   }
 
