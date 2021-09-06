@@ -1581,7 +1581,7 @@
       "chainId": "80001",
       "contracts": {
         "Diplomacy": {
-          "address": "0x05971F46B459b65787C7aCf3e7908Fcee2fdfa6B",
+          "address": "0xCFB189C70D4f69131bE6b1055B21E9f8542351FD",
           "abi": [
             {
               "inputs": [],

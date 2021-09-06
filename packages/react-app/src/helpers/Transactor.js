@@ -18,6 +18,7 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
       let signer;
       let network;
       let provider;
+
       if (ethers.Signer.isSigner(providerOrSigner) === true) {
         provider = providerOrSigner.provider;
         signer = providerOrSigner;

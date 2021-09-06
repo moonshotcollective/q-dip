@@ -23,6 +23,8 @@ import {
 // import Hints from "./Hints";
 import { Voting, Elections, Hints, Subgraph } from "./views";
 
+import { Biconomy } from "@biconomy/mexa";
+
 const { ethers } = require("ethers");
 /*
     Welcome to 🏗 scaffold-eth !
@@ -138,12 +140,19 @@ function App(props) {
     }, 1);
   };
 
+  useEffect(() => {
+    console.log({ injectedProvider });
+    if (injectedProvider) {
+    }
+  }, [injectedProvider]);
+
   /* 💵 This hook will get the price of ETH from 🦄 Uniswap: */
   const price = useExchangePrice(targetNetwork, mainnetProvider);
 
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
   const gasPrice = useGasPrice(targetNetwork, "fast");
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
+
   const userSigner = useUserSigner(injectedProvider, localProvider);
 
   useEffect(() => {
@@ -162,7 +171,6 @@ function App(props) {
     userSigner && userSigner.provider && userSigner.provider._network && userSigner.provider._network.chainId;
 
   // For more hooks, check out 🔗eth-hooks at: https://www.npmjs.com/package/eth-hooks
-
   // The transactor wraps transactions and provides notificiations
   const tx = Transactor(userSigner, gasPrice);
 
@@ -314,16 +322,43 @@ function App(props) {
 
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
+    // let biconomy = new Biconomy(provider, {
+    //   apiKey: "v2M5LiE1Q.814850af-6fc2-46e1-ac80-bf673c131ace",
+    //   debug: true,
+    // });
+
     setInjectedProvider(new ethers.providers.Web3Provider(provider));
+
+    // biconomy
+    //   .onEvent(biconomy.READY, () => {
+    //     // Initialize your dapp here like getting user accounts etc
+    //     console.log("READY");
+    //   })
+    //   .onEvent(biconomy.ERROR, (error, message) => {
+    //     // Handle error while initializing mexa
+    //     console.log("ERROR");
+    //   });
 
     provider.on("chainChanged", chainId => {
       console.log(`chain changed to ${chainId}! updating providers`);
       setInjectedProvider(new ethers.providers.Web3Provider(provider));
+      //   let biconomy = new Biconomy(provider, {
+      //     apiKey: "v2M5LiE1Q.814850af-6fc2-46e1-ac80-bf673c131ace",
+      //     debug: true,
+      //   });
+
+      //   setInjectedProvider(new ethers.providers.Web3Provider(biconomy));
     });
 
     provider.on("accountsChanged", () => {
       console.log(`account changed!`);
       setInjectedProvider(new ethers.providers.Web3Provider(provider));
+      //   let biconomy = new Biconomy(provider, {
+      //     apiKey: "v2M5LiE1Q.814850af-6fc2-46e1-ac80-bf673c131ace",
+      //     debug: true,
+      //   });
+
+      //   setInjectedProvider(new ethers.providers.Web3Provider(biconomy));
     });
 
     // Subscribe to session disconnection

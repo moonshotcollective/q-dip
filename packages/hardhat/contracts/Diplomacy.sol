@@ -69,7 +69,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard, EIP712MetaTransac
     mapping(uint256 => Election) public elections;
     
     constructor() ReentrancyGuard() {
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _setupRole(DEFAULT_ADMIN_ROLE, msgSender());
     }
 
     event BallotCast(address voter, uint256 electionId, address[] adrs, string[] scores);
@@ -84,23 +84,23 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard, EIP712MetaTransac
 
     modifier onlyContractAdmin() {
 
-        require( hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Sender not Contract Admin!" );
+        require( hasRole(DEFAULT_ADMIN_ROLE, msgSender()), "Sender not Contract Admin!" );
         _;
 
     }
 
     modifier onlyElectionCandidate(uint256 electionId) {
 
-        require( hasRole(ELECTION_CANDIDATE_ROLE, _msgSender()), "Sender not Election Candidate!" );
-        require( isElectionCandidate(electionId, _msgSender()), "Sender not Election Candidate!" );
+        require( hasRole(ELECTION_CANDIDATE_ROLE, msgSender()), "Sender not Election Candidate!" );
+        require( isElectionCandidate(electionId, msgSender()), "Sender not Election Candidate!" );
         _;
 
     }
 
     modifier onlyElectionAdmin(uint256 electionId) {
 
-        require( hasRole(ELECTION_ADMIN_ROLE, _msgSender()), "Sender not Election Admin!" );
-        require( _msgSender() == elections[electionId].admin, "Sender not Election Admin!" );
+        require( hasRole(ELECTION_ADMIN_ROLE, msgSender()), "Sender not Election Admin!" );
+        require( msgSender() == elections[electionId].admin, "Sender not Election Admin!" );
         _;
 
     }
@@ -112,7 +112,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard, EIP712MetaTransac
     ) {
 
         require( elections[electionId].active, "Election Not Active!" );
-        require( !voted[electionId][_msgSender()], "Sender already voted!" );
+        require( !voted[electionId][msgSender()], "Sender already voted!" );
         require ( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
         //require ( _scores.length == elections[electionId].votes, "Not enough votes sent!" );
         _;
@@ -139,7 +139,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard, EIP712MetaTransac
         election.candidates = _adrs;
         election.createdAt = block.timestamp;
         election.active = true;
-        election.admin = _msgSender();
+        election.admin = msgSender();
 
     }
 
@@ -163,7 +163,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard, EIP712MetaTransac
         election.candidates = _adrs;
         election.createdAt = block.timestamp;
         election.active = true;
-        election.admin = _msgSender();
+        election.admin = msgSender();
 
     }
 
@@ -185,8 +185,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard, EIP712MetaTransac
         }
         // Setup roles
         _setElectionCandidateRoles(_adrs);
-        _setElectionAdminRole(_msgSender());
-        emit ElectionCreated(_msgSender(), electionId);
+        _setElectionAdminRole(msgSender());
+        emit ElectionCreated(msgSender(), electionId);
 
     }
 
@@ -203,8 +203,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard, EIP712MetaTransac
         for (uint256 i = 0; i < _adrs.length; i++) {
             scores[electionId][_adrs[i]].push(_scores[i]); 
         }
-        voted[electionId][_msgSender()] = true;
-        emit BallotCast(_msgSender(), electionId, _adrs, _scores);
+        voted[electionId][msgSender()] = true;
+        emit BallotCast(msgSender(), electionId, _adrs, _scores);
 
     }
 
@@ -257,7 +257,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard, EIP712MetaTransac
 
         // Distribute tokens to each candidate
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
-            IERC20(elections[electionId].token).safeTransferFrom(_msgSender(), _adrs[i], _pay[i]); // omit
+            IERC20(elections[electionId].token).safeTransferFrom(msgSender(), _adrs[i], _pay[i]); // omit
         }
         return true;
 
