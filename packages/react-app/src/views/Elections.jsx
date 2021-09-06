@@ -420,8 +420,6 @@ export default function Elections({
       layout="vertical"
       name="basic"
       autoComplete="off"
-      // labelCol={{ span: 6 }}
-      // wrapperCol={{ span: 16 }}
       initialValues={{ remember: false }}
       onFinish={() => {
         slider.current.next();
