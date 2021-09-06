@@ -10,6 +10,10 @@ require("hardhat-deploy");
 require("@eth-optimism/hardhat-ovm");
 require("@nomiclabs/hardhat-ethers");
 
+require("@nomiclabs/hardhat-etherscan");
+
+require("dotenv").config();
+
 const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 
 /*
@@ -199,6 +203,11 @@ module.exports = {
     deployer: {
       default: 0, // here this will by default take the first account as deployer
     },
+  },
+  etherscan: {
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: process.env.ETHERSCAN_API_KEY,
   },
 };
 

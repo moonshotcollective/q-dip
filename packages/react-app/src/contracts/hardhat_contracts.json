@@ -1581,7 +1581,7 @@
       "chainId": "80001",
       "contracts": {
         "Diplomacy": {
-          "address": "0x4129D1D82B1ca5287819C4fFf70E7Aeb53F152Fd",
+          "address": "0x05971F46B459b65787C7aCf3e7908Fcee2fdfa6B",
           "abi": [
             {
               "inputs": [],
@@ -1662,6 +1662,31 @@
                 }
               ],
               "name": "ElectionPaid",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "userAddress",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address payable",
+                  "name": "relayerAddress",
+                  "type": "address"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "bytes",
+                  "name": "functionSignature",
+                  "type": "bytes"
+                }
+              ],
+              "name": "MetaTransactionExecuted",
               "type": "event"
             },
             {
@@ -1905,6 +1930,45 @@
             {
               "inputs": [
                 {
+                  "internalType": "address",
+                  "name": "userAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "functionSignature",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "sigR",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "sigS",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "uint8",
+                  "name": "sigV",
+                  "type": "uint8"
+                }
+              ],
+              "name": "executeMetaTransaction",
+              "outputs": [
+                {
+                  "internalType": "bytes",
+                  "name": "",
+                  "type": "bytes"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
                   "internalType": "uint256",
                   "name": "electionId",
                   "type": "uint256"
@@ -2003,6 +2067,25 @@
                 {
                   "internalType": "uint256",
                   "name": "count",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "user",
+                  "type": "address"
+                }
+              ],
+              "name": "getNonce",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "nonce",
                   "type": "uint256"
                 }
               ],
