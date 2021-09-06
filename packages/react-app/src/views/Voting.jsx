@@ -415,9 +415,6 @@ export default function Voting({
                 🔒 End
               </Button>
             ),
-            // <Button type="danger" size="large" style={{ margin: 4 }} onClick={() => payoutTokens()}>
-            //   💸 Payout
-            // </Button>,
             canEndElection && !isElectionActive && !isElecPayoutComplete && (
               <PayButton
                 style={{ marginTop: 20 }}
