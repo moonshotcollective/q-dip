@@ -37,7 +37,7 @@ export default function Elections({
   const [isCreating, setIsCreating] = useState(false);
   const [erc20, setErc20] = useState([]);
 
-  const [form] = Form.useForm();
+  const [form1, form2] = Form.useForm();
 
   const route_history = useHistory();
 
@@ -168,7 +168,8 @@ export default function Elections({
     await readContracts[contractName].removeListener(eventName);
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
-      if (eventBlockNum >= localProvider._lastBlockNumber - 1) {
+      console.log(eventName, eventBlockNum, localProvider._lastBlockNumber);
+      if (eventBlockNum >= localProvider._lastBlockNumber - 5) {
         callback();
       }
     });
@@ -177,7 +178,8 @@ export default function Elections({
   function onElectionCreated() {
     console.log("onElectionCreated");
     setIsCreating(false);
-    form.resetFields();
+    form1.resetFields();
+    // form2.resetFields();
     if (slider && slider.current) {
       slider.current.goTo(0);
     }
@@ -254,22 +256,24 @@ export default function Elections({
       writeContracts.Diplomacy.newElection(
         newElecName,
         newElecAllocatedFunds,
+        // fundsType,
         tokenAdr,
         newElecAllocatedVotes,
         addresses,
-        {
-          gasLimit: 12450000,
-        }
       ),
-      // update => {
-      //   console.log("📡 Transaction Update:", update);
-      //   if (update && (update.status === "confirmed" || update.status === 1)) {
-      //     //   console.log(" 🍾 Transaction " + update.hash + " finished!");
-      //   }
-      //   if (update.status === "error") {
-      //     setIsCreating(false);
-      //   }
-      // },
+      update => {
+        console.log("📡 Transaction Update:", update);
+        if (update.code == -32603 || update.code == 4001) {
+          setIsCreating(false);
+          return;
+        }
+        if (update && (update.status === "confirmed" || update.status === 1)) {
+          //   console.log(" 🍾 Transaction " + update.hash + " finished!");
+        }
+        if (update.status === "error") {
+          setIsCreating(false);
+        }
+      },
     );
   };
 
@@ -331,7 +335,7 @@ export default function Elections({
   const create_form_1 = (
     <Form
       layout="vertical"
-      name="form"
+      name="form1"
       autoComplete="off"
       // labelCol={{ span: 6 }}
       // wrapperCol={{ span: 16 }}
@@ -418,8 +422,10 @@ export default function Elections({
   const create_form_2 = (
     <Form
       layout="vertical"
-      name="basic"
+      name="form2"
       autoComplete="off"
+      // labelCol={{ span: 6 }}
+      // wrapperCol={{ span: 16 }}
       initialValues={{ remember: false }}
       onFinish={() => {
         slider.current.next();

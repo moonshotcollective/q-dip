@@ -345,6 +345,8 @@ export default function Voting({
       }
       if (update && (update.status === "confirmed" || update.status === 1)) {
         console.log(" 🍾 Transaction " + update.hash + " finished!");
+        setIsEnding(false);
+        updateView();
       }
     });
     console.log("awaiting metamask/web3 confirm result...", result);
@@ -353,28 +355,23 @@ export default function Voting({
   const ethPayHandler = async () => {
     setIsPaying(true);
     const result = tx(
-      writeContracts.Diplomacy.payoutElection(
-        id,
-        payoutInfo.candidates,
-        payoutInfo.payout,
-        {
-          value: election.funds,
-          gasLimit: 12450000,
+      writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
+        value: election.funds,
+        gasLimit: 12450000,
+      }),
+      update => {
+        if (update && update.code == 4001) {
+          setIsPaying(false);
+          console.log(update.message);
+          return;
         }
-      ), 
-        update => {
-          if (update && update.code == 4001) {
-            setIsPaying(false);
-            console.log(update.message);
-            return;
-          }
-          if (update && (update.status === "confirmed" || update.status === 1)) {
-            console.log(" 🍾 Transaction " + update.hash + " finished!");
-          } else if (update.status === 0) {
-            setIsPaying(false);
-            return;
-          }
-        },
+        if (update && (update.status === "confirmed" || update.status === 1)) {
+          console.log(" 🍾 Transaction " + update.hash + " finished!");
+        } else if (update.status === 0) {
+          setIsPaying(false);
+          return;
+        }
+      },
     );
   };
 

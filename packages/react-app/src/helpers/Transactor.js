@@ -107,6 +107,8 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
               if (currentTransactionReceipt && currentTransactionReceipt.confirmations) {
                 callback({ ...txResult, ...currentTransactionReceipt });
                 clearInterval(listeningInterval);
+              } else {
+                clearInterval(listeningInterval);
               }
             }, 2500);
           }
