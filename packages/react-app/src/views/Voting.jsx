@@ -155,7 +155,8 @@ export default function Voting({
     await readContracts[contractName].removeListener(eventName);
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
-      if (eventBlockNum >= localProvider._lastBlockNumber - 1) {
+      console.log(eventName, eventBlockNum, localProvider._lastBlockNumber);
+      if (eventBlockNum >= localProvider._lastBlockNumber - 5) {
         let msg = args.pop().args;
         callback(msg);
       }
