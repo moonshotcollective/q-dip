@@ -10,6 +10,8 @@ require("hardhat-deploy");
 require("@eth-optimism/hardhat-ovm");
 require("@nomiclabs/hardhat-ethers");
 
+require("hardhat-gas-reporter"); // Hardhat gas reporter
+
 const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 
 /*
@@ -41,6 +43,13 @@ function mnemonic() {
 }
 
 module.exports = {
+  // hardhat gas reporter configs
+  gasReporter: {
+    currency: 'USD',
+    gasPrice: 100, 
+    coinmarketcap: "dd389059-9822-4d8c-8fc0-d5d37982f64f"
+  }, 
+
   defaultNetwork,
 
   // don't forget to set your provider like:

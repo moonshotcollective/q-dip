@@ -215,6 +215,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
 
         Election storage election = elections[electionId];
         require( election.active, "Election Already Ended!" );
+        require( !election.paid, "Election has already been paid out!" );
         election.active = false;
         emit ElectionEnded(electionId); // look into diff methods 
 
@@ -280,6 +281,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     ) public payable onlyElectionAdmin(electionId) nonReentrant() {
 
         require( !elections[electionId].active, "Election Still Active!" );
+        require( !elections[electionId].paid, "Election Already Paid-out!" );
         bool status;
         if ( elections[electionId].token == address(0) ) {
             status = _ethPayout(electionId, _adrs, _pay);
