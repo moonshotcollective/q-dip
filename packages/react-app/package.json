@@ -15,9 +15,17 @@
     ]
   },
   "dependencies": {
+    "@3id/connect": "^0.2.0",
     "@ant-design/icons": "^4.2.2",
     "@apollo/react-hooks": "^4.0.0",
+    "@ceramicnetwork/3id-did-resolver": "^1.4.0",
+    "@ceramicnetwork/http-client": "^1.2.0",
+    "@ceramicnetwork/stream-caip10-link": "^1.1.2",
+    "@ceramicstudio/idx": "^0.12.1",
+    "@ceramicstudio/idx-tools": "^0.11.0",
+    "@ceramicstudio/multiauth": "^0.2.3",
     "@ramp-network/ramp-instant-sdk": "^2.2.0",
+    "@stablelib/random": "^1.0.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.8",
@@ -31,12 +39,18 @@
     "arb-ts": "^0.0.18",
     "axios": "^0.20.0",
     "bnc-notify": "^1.5.0",
+    "dids": "^2.4.0",
     "dotenv": "^8.2.0",
+    "easy-peasy": "^5.0.3",
     "eth-hooks": "^1.1.2",
     "ethers": "^5.3.0",
+    "global": "^4.4.0",
     "graphiql": "^1.0.5",
     "graphql": "^15.3.0",
     "isomorphic-fetch": "^3.0.0",
+    "key-did-provider-ed25519": "^1.1.0",
+    "key-did-resolver": "^1.4.0",
+    "node-pre-gyp": "^0.17.0",
     "node-watch": "^0.7.1",
     "postcss": "^8.2.6",
     "qrcode.react": "^1.0.0",
@@ -44,6 +58,7 @@
     "react-blockies": "^1.4.1",
     "react-css-theme-switcher": "^0.2.2",
     "react-dom": "^17.0.2",
+    "react-hot-toast": "^2.1.1",
     "react-qr-reader": "^2.2.1",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.0",
@@ -91,6 +106,7 @@
     "s3": "node ./scripts/s3.js",
     "ship": "yarn surge",
     "theme": "npx gulp less",
-    "watch": "node ./scripts/watch.js"
+    "watch": "node ./scripts/watch.js",
+    "ceramic:bootstrap": "node ./scripts/ceramic-bootstrap.js"
   }
 }

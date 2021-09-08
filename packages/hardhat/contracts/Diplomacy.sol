@@ -1,34 +1,34 @@
-/**                                                                              
-                                            ..                                  
-                                          ,*.                                   
-                                        .**,                                    
-                                       ,***.                                    
-                                 .,.   ,***,                                    
-                               .**,    *****.                                   
-                             .****.    ,*****,                                  
-                           .******,     ,******,                                
-                         .*******.       .********,              .              
-                       ,******.            .*************,,*****.               
-                     ,*****.        ,,.        ,************,.                  
-                  .,****.         ,*****,                                       
-                 ,***,          ,*******,.              ..                      
-               ,**,          .*******,.       ,********.                        
-                           .******,.       .********,                           
-                         .*****,         .*******,                              
-                       ,****,          .******,                                 
-                     ,***,.          .*****,                                    
-                   ,**,.           ./***,                                       
-                  ,,             .***,                                          
-                               .**,                                 
-            __  _______  ____  _   _______ __  ______  ______         
-           /  |/  / __ \/ __ \/ | / / ___// / / / __ \/_  __/         
-          / /|_/ / / / / / / /  |/ /\__ \/ /_/ / / / / / /            
-         / /  / / /_/ / /_/ / /|  /___/ / __  / /_/ / / /             
+/**
+                                            ..
+                                          ,*.
+                                        .**,
+                                       ,***.
+                                 .,.   ,***,
+                               .**,    *****.
+                             .****.    ,*****,
+                           .******,     ,******,
+                         .*******.       .********,              .
+                       ,******.            .*************,,*****.
+                     ,*****.        ,,.        ,************,.
+                  .,****.         ,*****,
+                 ,***,          ,*******,.              ..
+               ,**,          .*******,.       ,********.
+                           .******,.       .********,
+                         .*****,         .*******,
+                       ,****,          .******,
+                     ,***,.          .*****,
+                   ,**,.           ./***,
+                  ,,             .***,
+                               .**,
+            __  _______  ____  _   _______ __  ______  ______
+           /  |/  / __ \/ __ \/ | / / ___// / / / __ \/_  __/
+          / /|_/ / / / / / / /  |/ /\__ \/ /_/ / / / / / /
+         / /  / / /_/ / /_/ / /|  /___/ / __  / /_/ / / /
         /_/  /_/\____/\____/_/_|_//____/_/_/_/\____/_/_/__    ________
           / ____/ __ \/ /   / /   / ____/ ____/_  __/  _/ |  / / ____/
-         / /   / / / / /   / /   / __/ / /     / /  / / | | / / __/   
-        / /___/ /_/ / /___/ /___/ /___/ /___  / / _/ /  | |/ / /___   
-        \____/\____/_____/_____/_____/\____/ /_/ /___/  |___/_____/                                                           
+         / /   / / / / /   / /   / __/ / /     / /  / / | | / / __/
+        / /___/ /_/ / /___/ /___/ /___/ /___  / / _/ /  | |/ / /___
+        \____/\____/_____/_____/_____/\____/ /_/ /___/  |___/_____/
 */
 
 //SPDX-License-Identifier: MIT
@@ -48,7 +48,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     /**
-    @notice Election Definition 
+    @notice Election Definition
     */
     struct Election {
         string name;                            // Creator title/names/etc
@@ -61,12 +61,12 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         uint256 votes;                          // Number of votes delegated to each candidate
         address admin;                          // Address of Election Admin
     }
-    
+
     mapping(uint256 => mapping(address => bool)) public voted;      // Election-candidate vote status
     mapping(uint256 => mapping(address => string[])) public scores; // Election-candidate submitted scores
 
     mapping(uint256 => Election) public elections;
-    
+
     constructor() ReentrancyGuard() {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
@@ -129,7 +129,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         uint256 _votes,
         address[] memory _adrs
     ) internal returns (uint256 electionId) {
-        
+
         electionId = numElections++; // why does .add break it?
         Election storage election = elections[electionId];
         election.name = _name;
@@ -167,7 +167,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     }
 
    /**
-    @notice Create a new election  
+    @notice Create a new election
     */
     function newElection(
         string memory _name,
@@ -196,11 +196,11 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         uint256 electionId,
         address[] memory _adrs,
         string[] memory _scores // submitted sqrt of votes
-    ) public onlyElectionCandidate(electionId) 
+    ) public onlyElectionCandidate(electionId)
         validBallot(electionId, _adrs, _scores) {
 
         for (uint256 i = 0; i < _adrs.length; i++) {
-            scores[electionId][_adrs[i]].push(_scores[i]); 
+            scores[electionId][_adrs[i]].push(_scores[i]);
         }
         voted[electionId][msg.sender] = true;
         emit BallotCast(msg.sender, electionId, _adrs, _scores);
@@ -210,22 +210,22 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     /**
     @notice End an Active Election
     */
-    function endElection(uint256 electionId) 
+    function endElection(uint256 electionId)
     public onlyElectionAdmin(electionId) {
 
         Election storage election = elections[electionId];
         require( election.active, "Election Already Ended!" );
         election.active = false;
-        emit ElectionEnded(electionId); // look into diff methods 
+        emit ElectionEnded(electionId); // look into diff methods
 
     }
 
     /**
-    @notice Payout the election with ETH 
+    @notice Payout the election with ETH
     */
     function _ethPayout(
-        uint256 electionId, 
-        address[] memory _adrs, 
+        uint256 electionId,
+        address[] memory _adrs,
         uint256[] memory _pay
     ) internal onlyElectionAdmin(electionId) returns(bool) {
 
@@ -240,17 +240,17 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
             (bool sent, bytes memory data) = _adrs[i].call{value: _pay[i]}("");
             require(sent, "Failed to send Ether");
         }
-        
-        return true; 
+
+        return true;
 
     }
 
     /**
-    @notice Payout the election with the selected token  
+    @notice Payout the election with the selected token
     */
     function _tokenPayout(
-        uint256 electionId, 
-        address[] memory _adrs, 
+        uint256 electionId,
+        address[] memory _adrs,
         uint256[] memory _pay
     ) internal returns(bool) {
 
@@ -305,11 +305,11 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     }
 
     /**
-    @notice Get election metadata by the ID  
-    */ 
-    // Use a struct mapping instead! 
+    @notice Get election metadata by the ID
+    */
+    // Use a struct mapping instead!
     function getElectionById(uint256 electionId)
-    public view 
+    public view
     returns (
         string memory name,
         address[] memory candidates,
@@ -336,12 +336,12 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
 
     }
 
-    function getElectionScores(uint256 electionId, address _adr) 
+    function getElectionScores(uint256 electionId, address _adr)
     public view returns (string[] memory) {
         return scores[electionId][_adr];
     }
 
-    function getElectionVoted(uint256 electionId) 
+    function getElectionVoted(uint256 electionId)
     public view returns (uint256 count) {
 
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
@@ -365,12 +365,12 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
 
     }
 
-    function isElectionAdmin(uint256 electionId, address _sender) 
+    function isElectionAdmin(uint256 electionId, address _sender)
     public view returns (bool) {
         return _sender == elections[electionId].admin;
     }
 
-    function isElectionCandidate(uint256 electionId, address _sender) 
+    function isElectionCandidate(uint256 electionId, address _sender)
     public view returns (bool status) {
 
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
@@ -382,7 +382,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
 
     }
 
-    function hasVoted(uint256 electionId, address _sender) 
+    function hasVoted(uint256 electionId, address _sender)
     public view returns (bool) {
         return voted[electionId][_sender];
     }

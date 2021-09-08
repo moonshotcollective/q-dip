@@ -1,15 +1,19 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
-//import Torus from "@toruslabs/torus-embed"
+import { Caip10Link } from '@ceramicnetwork/stream-caip10-link';
+import { TileDocument } from '@ceramicnetwork/stream-tile';
+import {
+  useMultiAuth,
+} from '@ceramicstudio/multiauth'
 import WalletLink from "walletlink";
 import { Alert, Button, Col, Menu, Row } from "antd";
 import "antd/dist/antd.css";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { BrowserRouter, Link, Route, Switch, Redirect } from "react-router-dom";
 import Web3Modal from "web3modal";
 import "./App.css";
 import { Account, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
-import { Transactor } from "./helpers";
+import { makeCeramicClient, Transactor } from "./helpers";
 import {
   useBalance,
   useContractLoader,
@@ -124,9 +128,20 @@ const web3Modal = new Web3Modal({
 
 function App(props) {
   const mainnetProvider = scaffoldEthProvider && scaffoldEthProvider._network ? scaffoldEthProvider : mainnetInfura;
-
   const [injectedProvider, setInjectedProvider] = useState();
   const [address, setAddress] = useState();
+
+  const testCeramic = async () => {
+    const { idx, ceramic, schemasCommitId } = await makeCeramicClient(address)
+    if (ceramic?.did?.id){
+      const doc = await TileDocument.create(ceramic, [{address: "0x14bb6d4d3C70207fc205D9D510790Ca6d854fe44", voteCount: 1}], {
+        controllers: [ceramic?.did?.id],
+        family: 'vote',
+        schema: schemasCommitId.vote,
+      });
+      console.log({doc})
+    }
+  }
 
   const logoutOfWeb3Modal = async () => {
     await web3Modal.clearCachedProvider();
@@ -315,7 +330,6 @@ function App(props) {
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
     setInjectedProvider(new ethers.providers.Web3Provider(provider));
-
     provider.on("chainChanged", chainId => {
       console.log(`chain changed to ${chainId}! updating providers`);
       setInjectedProvider(new ethers.providers.Web3Provider(provider));
@@ -479,6 +493,8 @@ function App(props) {
         />
         {faucetHint}
       </div>
+
+      <button onClick={testCeramic}>Test</button>
 
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
       <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
