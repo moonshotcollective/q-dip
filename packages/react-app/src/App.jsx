@@ -129,6 +129,7 @@ function App(props) {
 
   const [injectedProvider, setInjectedProvider] = useState();
   const [address, setAddress] = useState();
+  const [biconomyObj, setBiconomyObj] = useState();
 
   const logoutOfWeb3Modal = async () => {
     await web3Modal.clearCachedProvider();
@@ -184,10 +185,10 @@ function App(props) {
   const yourMainnetBalance = useBalance(mainnetProvider, address);
 
   // Load in your local 📝 contract and read a value from it:
-  const readContracts = useContractLoader(localProvider);
+  const readContracts = useContractLoader(injectedProvider);
 
   // If you want to make 🔐 write transactions to your contracts, use the userSigner:
-  const writeContracts = useContractLoader(userSigner, { chainId: localChainId });
+  const writeContracts = useContractLoader(injectedProvider, { chainId: localChainId });
 
   // EXTERNAL CONTRACT EXAMPLE:
   //
@@ -320,45 +321,40 @@ function App(props) {
     );
   }
 
+  function initBiconomy() {
+    let biconomy = new Biconomy(provider, {
+      apiKey: process.env.BICONOMY_API_KEY,
+      debug: true,
+    });
+    setBiconomyObj(biconomy);
+    biconomy
+      .onEvent(biconomy.READY, () => {
+        // Initialize your dapp here like getting user accounts etc
+        console.log("Biconomy READY");
+      })
+      .onEvent(biconomy.ERROR, (error, message) => {
+        // Handle error while initializing mexa
+        console.log("Biconomy ERROR");
+      });
+  }
+
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
-    // let biconomy = new Biconomy(provider, {
-    //   apiKey: "v2M5LiE1Q.814850af-6fc2-46e1-ac80-bf673c131ace",
-    //   debug: true,
-    // });
+    initBiconomy();
 
-    setInjectedProvider(new ethers.providers.Web3Provider(provider));
-
-    // biconomy
-    //   .onEvent(biconomy.READY, () => {
-    //     // Initialize your dapp here like getting user accounts etc
-    //     console.log("READY");
-    //   })
-    //   .onEvent(biconomy.ERROR, (error, message) => {
-    //     // Handle error while initializing mexa
-    //     console.log("ERROR");
-    //   });
+    // setInjectedProvider(new ethers.providers.Web3Provider(provider));
+    setInjectedProvider(new ethers.providers.Web3Provider(biconomyObj));
 
     provider.on("chainChanged", chainId => {
       console.log(`chain changed to ${chainId}! updating providers`);
-      setInjectedProvider(new ethers.providers.Web3Provider(provider));
-      //   let biconomy = new Biconomy(provider, {
-      //     apiKey: "v2M5LiE1Q.814850af-6fc2-46e1-ac80-bf673c131ace",
-      //     debug: true,
-      //   });
-
-      //   setInjectedProvider(new ethers.providers.Web3Provider(biconomy));
+      //   setInjectedProvider(new ethers.providers.Web3Provider(provider));
+      setInjectedProvider(new ethers.providers.Web3Provider(biconomyObj));
     });
 
     provider.on("accountsChanged", () => {
       console.log(`account changed!`);
-      setInjectedProvider(new ethers.providers.Web3Provider(provider));
-      //   let biconomy = new Biconomy(provider, {
-      //     apiKey: "v2M5LiE1Q.814850af-6fc2-46e1-ac80-bf673c131ace",
-      //     debug: true,
-      //   });
-
-      //   setInjectedProvider(new ethers.providers.Web3Provider(biconomy));
+      // setInjectedProvider(new ethers.providers.Web3Provider(provider));
+      setInjectedProvider(new ethers.providers.Web3Provider(biconomyObj));
     });
 
     // Subscribe to session disconnection
@@ -461,6 +457,7 @@ function App(props) {
               userSigner={userSigner}
               mainnetProvider={mainnetProvider}
               localProvider={localProvider}
+              injectedProvider={injectedProvider}
               yourLocalBalance={yourLocalBalance}
               price={price}
               tx={tx}
@@ -474,6 +471,7 @@ function App(props) {
               userSigner={userSigner}
               mainnetProvider={mainnetProvider}
               localProvider={localProvider}
+              injectedProvider={injectedProvider}
               yourLocalBalance={yourLocalBalance}
               price={price}
               tx={tx}

@@ -19,6 +19,7 @@ export default function Elections({
   address,
   mainnetProvider,
   localProvider,
+  injectedProvider,
   mainnetContracts,
   userSigner,
   yourLocalBalance,
@@ -37,7 +38,7 @@ export default function Elections({
   const [isCreating, setIsCreating] = useState(false);
   const [erc20, setErc20] = useState([]);
 
-  const [form] = Form.useForm();
+  const [form1] = Form.useForm();
 
   const route_history = useHistory();
 
@@ -168,7 +169,8 @@ export default function Elections({
     await readContracts[contractName].removeListener(eventName);
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
-      if (eventBlockNum >= localProvider._lastBlockNumber - 1) {
+      console.log(eventName, eventBlockNum, injectedProvider._lastBlockNumber);
+      if (eventBlockNum >= injectedProvider._lastBlockNumber - 10) {
         callback();
       }
     });
@@ -177,7 +179,7 @@ export default function Elections({
   function onElectionCreated() {
     console.log("onElectionCreated");
     setIsCreating(false);
-    form.resetFields();
+    form1.resetFields();
     if (slider && slider.current) {
       slider.current.goTo(0);
     }
@@ -259,7 +261,7 @@ export default function Elections({
         addresses,
         {
           gasLimit: 12450000,
-        }
+        },
       ),
       // update => {
       //   console.log("📡 Transaction Update:", update);
@@ -332,6 +334,7 @@ export default function Elections({
     <Form
       layout="vertical"
       name="form"
+      form={form1}
       autoComplete="off"
       // labelCol={{ span: 6 }}
       // wrapperCol={{ span: 16 }}

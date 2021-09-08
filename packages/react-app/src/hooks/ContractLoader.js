@@ -106,7 +106,9 @@ export default function useContractLoader(providerOrSigner, config = {}) {
               config.customAddresses && Object.keys(config.customAddresses).includes(contractName)
                 ? config.customAddresses[contractName]
                 : combinedContracts[contractName].address;
+
             accumulator[contractName] = new ethers.Contract(_address, combinedContracts[contractName].abi, signer);
+
             return accumulator;
           }, {});
           if (active) setContracts(newContracts);

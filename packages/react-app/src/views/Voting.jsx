@@ -6,12 +6,14 @@ import { fromWei, toWei, toBN } from "web3-utils";
 import { Address, PayButton } from "../components";
 
 import Web3 from "web3";
+const { ethers } = require("ethers");
 
 export default function Voting({
   address,
   mainnetProvider,
   blockExplorer,
   localProvider,
+  injectedProvider,
   tx,
   readContracts,
   writeContracts,
@@ -157,7 +159,7 @@ export default function Voting({
     await readContracts[contractName].removeListener(eventName);
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
-      if (eventBlockNum >= localProvider._lastBlockNumber - 1) {
+      if (eventBlockNum >= injectedProvider._lastBlockNumber - 10) {
         let msg = args.pop().args;
         callback(msg);
       }
@@ -245,6 +247,22 @@ export default function Voting({
     setTableDataSrc(data);
   };
 
+  const getSignatureParameters = signature => {
+    if (!ethers.utils.isHexString(signature)) {
+      throw new Error('Given value "'.concat(signature, '" is not a valid hex string.'));
+    }
+    var r = signature.slice(0, 66);
+    var s = "0x".concat(signature.slice(66, 130));
+    var v = "0x".concat(signature.slice(130, 132));
+    v = ethers.BigNumber.from(v).toNumber();
+    if (![27, 28].includes(v)) v += 27;
+    return {
+      r: r,
+      s: s,
+      v: v,
+    };
+  };
+
   const castVotes = async () => {
     console.log("castVotes");
     setIsVoting(true);
@@ -256,7 +274,79 @@ export default function Voting({
       votes.push(Math.sqrt(tableDataSrc[i].n_votes).toString());
     }
 
-    const result = tx(writeContracts.Diplomacy.castBallot(id, adrs, votes), update => {
+    let walletProvider, walletSigner;
+
+    // let contractInterface = new ethers.utils.Interface(<CONTRACT_ABI>);
+
+    /*
+  This provider is linked to your wallet.
+  If needed, substitute your wallet solution in place of window.ethereum 
+ */
+    /* walletProvider = new ethers.providers.Web3Provider(window.ethereum);
+walletSigner = walletProvider.getSigner();
+
+
+
+
+
+/*Its important to use eth_signTypedData_v3 and not v4 to get EIP712 signature 
+because we have used salt in domain data instead of chainId*/
+    // Get the EIP-712 Signature and send the transaction
+    // let signature = await walletProvider.send("eth_signTypedData_v3", [userAddress, dataToSign])
+    // let { r, s, v } = getSignatureParameters(signature);
+    // let tx = contract.executeMetaTransaction(userAddress,
+    //              functionSignature, r, s, v);
+
+    // await tx.wait(1);
+    // console.log("Transaction hash : ", tx.hash);  */}
+    // Initialize Constants
+    const domainType = [
+      { name: "name", type: "string" },
+      { name: "version", type: "string" },
+      { name: "verifyingContract", type: "address" },
+      { name: "salt", type: "bytes32" },
+    ];
+    const metaTransactionType = [
+      { name: "nonce", type: "uint256" },
+      { name: "from", type: "address" },
+      { name: "functionSignature", type: "bytes" },
+    ];
+    // replace the chainId 42 if network is not kovan
+    let domainData = {
+      name: "Diplomacy",
+      version: "1",
+      verifyingContract: readContracts.Diplomacy.address,
+      salt: ethers.utils.hexZeroPad(ethers.BigNumber.from(80001).toHexString(), 32),
+    };
+
+    let nonce = await readContracts.Diplomacy.getNonce(address);
+    let functionSignature = readContracts.Diplomacy.interface.encodeFunctionData("castBallot", [id, adrs, votes]);
+
+    let message = {};
+    message.nonce = parseInt(nonce);
+    message.from = address;
+    message.functionSignature = functionSignature;
+
+    const dataToSign = JSON.stringify({
+      types: {
+        EIP712Domain: domainType,
+        MetaTransaction: metaTransactionType,
+      },
+      domain: domainData,
+      primaryType: "MetaTransaction",
+      message: message,
+    });
+
+    let signature = await injectedProvider.send("eth_signTypedData_v3", [address, dataToSign]);
+    console.log({ signature });
+    let { r, s, v } = getSignatureParameters(signature);
+    console.log({ r, s, v });
+    let tx = await readContracts.Diplomacy.executeMetaTransaction(address, functionSignature, r, s, v);
+    // await tx.wait(1);
+    console.log("Meta Transaction hash : ", tx.hash);
+    setIsVoting(false);
+    updateView();
+    /* const result = tx(writeContracts.Diplomacy.castBallot(id, adrs, votes), update => {
       console.log("📡 Transaction Update:", update);
       if (update && (update.status === "confirmed" || update.status === 1)) {
         console.log(" 🍾 Transaction " + update.hash + " finished!");
@@ -264,9 +354,10 @@ export default function Voting({
         console.log("update error ", update.status);
         setIsVoting(false);
       }
-    });
-    console.log("awaiting metamask/web3 confirm result...", result);
-    console.log(await result);
+    }); */
+
+    // console.log("awaiting metamask/web3 confirm result...", result);
+    // console.log(await result);
     // updateView();
   };
 
