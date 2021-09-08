@@ -37,7 +37,7 @@ export default function Elections({
   const [isCreating, setIsCreating] = useState(false);
   const [erc20, setErc20] = useState([]);
 
-  const [form] = Form.useForm();
+  const [form1, form2] = Form.useForm();
 
   const route_history = useHistory();
 
@@ -168,7 +168,8 @@ export default function Elections({
     await readContracts[contractName].removeListener(eventName);
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
-      if (eventBlockNum >= localProvider._lastBlockNumber - 1) {
+      console.log(eventName, eventBlockNum, localProvider._lastBlockNumber);
+      if (eventBlockNum >= localProvider._lastBlockNumber - 5) {
         callback();
       }
     });
@@ -177,7 +178,8 @@ export default function Elections({
   function onElectionCreated() {
     console.log("onElectionCreated");
     setIsCreating(false);
-    form.resetFields();
+    form1.resetFields();
+    // form2.resetFields();
     if (slider && slider.current) {
       slider.current.goTo(0);
     }
@@ -213,6 +215,7 @@ export default function Elections({
       let admin = election.admin;
       let roles = [];
       const isAdmin = election.admin == address;
+      //   console.log({ address });
       if (isAdmin) {
         roles.push("admin");
       }
@@ -260,6 +263,10 @@ export default function Elections({
       ),
       update => {
         console.log("📡 Transaction Update:", update);
+        if (update.code == -32603 || update.code == 4001) {
+          setIsCreating(false);
+          return;
+        }
         if (update && (update.status === "confirmed" || update.status === 1)) {
           //   console.log(" 🍾 Transaction " + update.hash + " finished!");
         }
@@ -296,8 +303,9 @@ export default function Elections({
   const [toAddress, setToAddress] = useState("");
 
   const [tableDataLoading, setTableDataLoading] = useState(false);
-  const [fundsType, setFundsType] = useState("ETH");
+  const [fundsType, setFundsType] = useState("MATIC");
   const [tokenAdr, setTokenAdr] = useState("0x0000000000000000000000000000000000000000");
+  const [tokenName, setTokenName] = useState("LINK");
 
   let table_state = {
     bordered: true,
@@ -306,28 +314,28 @@ export default function Elections({
 
   const selectFundsType = (
     <Select
-      defaultValue="ETH"
+      defaultValue="MATIC"
       className="select-funds-type"
       onChange={value => {
         setFundsType(value);
-        if (value == "ETH") {
+        if (value == "MATIC") {
           setTokenAdr("0x0000000000000000000000000000000000000000");
-        } else if (value == "GTC") {
-          // UNISWAP TOKEN ADDRESS FOR TESTING!
+        } else if (value == tokenName) {
+          // LINK-MATIC TOKEN ADDRESS FOR TESTING!
           const adr = "0x326C977E6efc84E512bB9C30f76E30c160eD06FB";
           setTokenAdr(adr);
         }
       }}
     >
-      <Option value="ETH">ETH</Option>
-      <Option value="GTC">GTC</Option>
+      <Option value="MATIC">MATIC</Option>
+      <Option value={tokenName}>{tokenName}</Option>
     </Select>
   );
 
   const create_form_1 = (
     <Form
       layout="vertical"
-      name="basic"
+      name="form1"
       autoComplete="off"
       // labelCol={{ span: 6 }}
       // wrapperCol={{ span: 16 }}
@@ -371,9 +379,9 @@ export default function Elections({
           onChange={e => {
             if (!isNaN(Number(e.target.value))) {
               let funds;
-              if (fundsType === "ETH") {
+              if (fundsType === "MATIC") {
                 funds = toWei(Number(e.target.value).toFixed(18).toString());
-              } else if (fundsType === "GTC") {
+              } else if (fundsType === tokenName) {
                 funds = toWei(Number(e.target.value).toFixed(18).toString()); //*10^18 for Tokens?? -> toWei does this, but hacky
               }
               setNewElecAllocatedFunds(funds);
@@ -414,7 +422,7 @@ export default function Elections({
   const create_form_2 = (
     <Form
       layout="vertical"
-      name="basic"
+      name="form2"
       autoComplete="off"
       // labelCol={{ span: 6 }}
       // wrapperCol={{ span: 16 }}

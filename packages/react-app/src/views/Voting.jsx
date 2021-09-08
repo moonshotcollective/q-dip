@@ -17,7 +17,7 @@ export default function Voting({
 }) {
   let { id } = useParams();
   const [tableDataSrc, setTableDataSrc] = useState([]);
-  const [token, setToken] = useState("ETH");
+  const [token, setToken] = useState("MATIC");
   const [election, setElection] = useState();
   const [elecName, setElecName] = useState("");
   const [totalVotes, setTotalVotes] = useState(0);
@@ -25,6 +25,8 @@ export default function Voting({
   const [remainTokens, setRemainTokens] = useState(0);
   const [alreadyVoted, setAlreadyVoted] = useState(false);
   const [canEndElection, setCanEndElection] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
   const [canVoteElection, setCanVoteElection] = useState(false);
   const [isElectionActive, setIsElectionActive] = useState(false);
   const [isElecPayoutComplete, setIsElecPayoutComplete] = useState(false);
@@ -124,7 +126,7 @@ export default function Voting({
 
   useEffect(() => {
     if (!election) return;
-    let fundingType = "ETH";
+    let fundingType = "MATIC";
     if (election.token != "0x0000000000000000000000000000000000000000") {
       fundingType = getTokenName(election.token);
     }
@@ -153,7 +155,8 @@ export default function Voting({
     await readContracts[contractName].removeListener(eventName);
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
-      if (eventBlockNum >= localProvider._lastBlockNumber - 1) {
+      console.log(eventName, eventBlockNum, localProvider._lastBlockNumber);
+      if (eventBlockNum >= localProvider._lastBlockNumber - 5) {
         let msg = args.pop().args;
         callback(msg);
       }
@@ -165,6 +168,8 @@ export default function Voting({
     if (alreadyVoted || msg.voter == address) {
       updateView();
       setIsVoting(false);
+    } else {
+      updateView();
     }
   }
 
@@ -244,6 +249,7 @@ export default function Voting({
   const castVotes = async () => {
     console.log("castVotes");
     setIsVoting(true);
+
     const election = await readContracts.Diplomacy.getElectionById(id);
     const adrs = election.candidates; // hmm...
     const votes = [];
@@ -333,25 +339,47 @@ export default function Voting({
   const endElection = async () => {
     calculatePayout();
     console.log("endElection");
+    setIsEnding(true);
     const result = tx(writeContracts.Diplomacy.endElection(id), update => {
-      console.log("📡 Transaction Update:", update);
+      if (update && update.code == 4001) {
+        setIsEnding(false);
+        console.log(update.message);
+        return;
+      }
       if (update && (update.status === "confirmed" || update.status === 1)) {
         console.log(" 🍾 Transaction " + update.hash + " finished!");
+        setIsEnding(false);
+        updateView();
       }
     });
     console.log("awaiting metamask/web3 confirm result...", result);
   };
 
   const ethPayHandler = async () => {
-    tx(
+    setIsPaying(true);
+    const result = tx(
       writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
         value: election.funds,
         gasLimit: 12450000,
       }),
+      update => {
+        if (update && update.code == 4001) {
+          setIsPaying(false);
+          console.log(update.message);
+          return;
+        }
+        if (update && (update.status === "confirmed" || update.status === 1)) {
+          console.log(" 🍾 Transaction " + update.hash + " finished!");
+        } else if (update.status === 0) {
+          setIsPaying(false);
+          return;
+        }
+      },
     );
   };
 
   const tokenPayHandler = async opts => {
+    setIsPaying(true);
     console.log(opts);
     console.log({ payoutInfo });
     const election = await readContracts.Diplomacy.getElectionById(id);
@@ -376,18 +404,22 @@ export default function Voting({
           title={elecName}
           extra={[
             canEndElection && isElectionActive && (
-              <Button type="danger" size="large" style={{ margin: 4 }} onClick={() => endElection()}>
-                End
+              <Button
+                type="danger"
+                size="large"
+                shape="round"
+                style={{ margin: 4 }}
+                onClick={() => endElection()}
+                loading={isEnding}
+              >
+                🔒 End
               </Button>
             ),
-            // <Button type="danger" size="large" style={{ margin: 4 }} onClick={() => payoutTokens()}>
-            //   💸 Payout
-            // </Button>,
             canEndElection && !isElectionActive && !isElecPayoutComplete && (
               <PayButton
                 style={{ marginTop: 20 }}
                 token={token}
-                appName="D-Tips"
+                appName="Quadratic Diplomacy"
                 tokenListHandler={tokens => setAvailableTokens(tokens)}
                 callerAddress={address}
                 maxApproval={amount}
@@ -401,7 +433,14 @@ export default function Voting({
               />
             ),
             isElectionActive && !alreadyVoted && canVoteElection && (
-              <Button type="primary" size="large" style={{ margin: 4 }} onClick={() => castVotes()} loading={isVoting}>
+              <Button
+                type="primary"
+                size="large"
+                shape="round"
+                style={{ margin: 4 }}
+                onClick={() => castVotes()}
+                loading={isVoting}
+              >
                 🗳️ Vote
               </Button>
             ),

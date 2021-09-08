@@ -104,4 +104,10 @@ dist
 .tern-port
 
 # Artificats
-packages/hardhat/artifacts/
+artifacts/
+
+# Editors
+.vscode/
+
+# Cache 
+cache/
