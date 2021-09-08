@@ -104,5 +104,7 @@ dist
 .tern-port
 
 # Artificats
-packages/hardhat/artifacts/
-packages/hardhat/deployments/mumbai/
+artifacts/
+
+# Editors
+.vscode/
