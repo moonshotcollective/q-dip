@@ -37,14 +37,12 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     /**
@@ -54,11 +52,11 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         string name;                            // Creator title/names/etc
         bool active;                            // Election status
         bool paid;                              // Election payout status
-        uint256 createdAt;                      // Creation block time-stamp
+        uint32 createdAt;                      // Creation block time-stamp
         address[] candidates;                   // Candidates (who can vote/be voted)
-        uint256 funds;                          // Allowance of ETH or Tokens for Election
+        uint32 funds;                          // Allowance of ETH or Tokens for Election
         address token;                          // Address of Election Token (Eth -> 0x00..)
-        uint256 votes;                          // Number of votes delegated to each candidate
+        int8 votes;                          // Number of votes delegated to each candidate
         address admin;                          // Address of Election Admin
     }
     
@@ -111,8 +109,10 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     ) {
 
         require( elections[electionId].active, "Election Not Active!" );
+        require( !elections[electionId].paid, "Election is already paid-out!" );
         require( !voted[electionId][msg.sender], "Sender already voted!" );
-        require ( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
+        require( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
+        require( _adrs.length == elections[electionId].candidates.length, "Address - Candidate Mismatch!"); 
         //require ( _scores.length == elections[electionId].votes, "Not enough votes sent!" );
         _;
 
@@ -125,8 +125,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     */
     function _newEthElection(
         string memory _name,
-        uint256 _funds,
-        uint256 _votes,
+        uint32 _funds,
+        int8 _votes,
         address[] memory _adrs
     ) internal returns (uint256 electionId) {
         
@@ -136,7 +136,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         election.funds = _funds;
         election.votes = _votes;
         election.candidates = _adrs;
-        election.createdAt = block.timestamp;
+        election.createdAt = uint32(block.timestamp);
         election.active = true;
         election.admin = msg.sender;
 
@@ -147,22 +147,21 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     */
     function _newTokenElection(
         string memory _name,
-        uint256 _funds,
+        uint32 _funds,
         address _token,
-        uint256 _votes,
+        int8 _votes,
         address[] memory _adrs
     ) internal returns (uint256 electionId) {
 
         electionId = numElections++;
-        Election storage election = elections[electionId];
-        election.name = _name;
-        election.funds = _funds;
-        election.token = _token;
-        election.votes = _votes;
-        election.candidates = _adrs;
-        election.createdAt = block.timestamp;
-        election.active = true;
-        election.admin = msg.sender;
+        elections[electionId].name = _name;
+        elections[electionId].funds = _funds;
+        elections[electionId].token = _token;
+        elections[electionId].votes = _votes;
+        elections[electionId].candidates = _adrs;
+        elections[electionId].createdAt = uint32(block.timestamp);
+        elections[electionId].active = true;
+        elections[electionId].admin = msg.sender;
 
     }
 
@@ -171,9 +170,9 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     */
     function newElection(
         string memory _name,
-        uint256 _funds,
+        uint32 _funds,
         address _token,
-        uint256 _votes,
+        int8 _votes,
         address[] memory _adrs
     ) public returns (uint256 electionId) {
 
@@ -198,7 +197,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         string[] memory _scores // submitted sqrt of votes
     ) public onlyElectionCandidate(electionId) 
         validBallot(electionId, _adrs, _scores) {
-
+        
         for (uint256 i = 0; i < _adrs.length; i++) {
             scores[electionId][_adrs[i]].push(_scores[i]); 
         }
@@ -213,10 +212,9 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     function endElection(uint256 electionId) 
     public onlyElectionAdmin(electionId) {
 
-        Election storage election = elections[electionId];
-        require( election.active, "Election Already Ended!" );
-        require( !election.paid, "Election has already been paid out!" );
-        election.active = false;
+        require( elections[electionId].active, "Election Already Ended!" );
+        require( !elections[electionId].paid, "Election has already been paid out!" );
+        elections[electionId].active = false;
         emit ElectionEnded(electionId); // look into diff methods 
 
     }
@@ -236,10 +234,11 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
             require( elections[electionId].candidates[i] == _adrs[i], "Election-Address Mismatch!" );
             paySum += _pay[i];
         }
+        require( msg.value >= paySum, "Not enough value sent!" );
         for (uint256 i = 0; i < _pay.length; i++) {
             // Call returns a boolean value indicating success or failure.
-            (bool sent, bytes memory data) = _adrs[i].call{value: _pay[i]}("");
-            require(sent, "Failed to send Ether");
+            (bool sent, ) = _adrs[i].call{value: _pay[i]}("");
+            require( sent, "Failed to send Ether" );
         }
         
         return true; 
@@ -319,7 +318,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         uint256 createdAt,
         uint256 funds,
         address token,
-        uint256 votes,
+        int8 votes,
         address admin,
         bool isActive,
         bool paid
