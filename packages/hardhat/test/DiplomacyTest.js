@@ -23,9 +23,9 @@ describe("Quadratic Diplomacy", function () {
           10, 
           [
             "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-            // "0x01684C57AE8a4226271068210Ce1cCED865a5AfC",
-            // "0xf5De4337Ac5332aF11BffbeC45D950bDDBc1493F",
-            // "0x4E53E14de4e264AC2C3fF501ed3Bd6c4Ad63B9A1",
+            "0x01684C57AE8a4226271068210Ce1cCED865a5AfC",
+            "0xf5De4337Ac5332aF11BffbeC45D950bDDBc1493F",
+            "0x4E53E14de4e264AC2C3fF501ed3Bd6c4Ad63B9A1",
           ]
         );
       });
@@ -37,15 +37,15 @@ describe("Quadratic Diplomacy", function () {
           0, 
           [
             "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-            // "0x01684C57AE8a4226271068210Ce1cCED865a5AfC",
-            // "0xf5De4337Ac5332aF11BffbeC45D950bDDBc1493F",
-            // "0x4E53E14de4e264AC2C3fF501ed3Bd6c4Ad63B9A1",
+            "0x01684C57AE8a4226271068210Ce1cCED865a5AfC",
+            "0xf5De4337Ac5332aF11BffbeC45D950bDDBc1493F",
+            "0x4E53E14de4e264AC2C3fF501ed3Bd6c4Ad63B9A1",
           ], 
           [
             "1", 
-            // "2", 
-            // "1", 
-            // "0"
+            "2", 
+            "1", 
+            "0"
           ]
         );
       });
@@ -65,15 +65,15 @@ describe("Quadratic Diplomacy", function () {
           0, 
           [
             "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-            // "0x01684C57AE8a4226271068210Ce1cCED865a5AfC",
-            // "0xf5De4337Ac5332aF11BffbeC45D950bDDBc1493F",
-            // "0x4E53E14de4e264AC2C3fF501ed3Bd6c4Ad63B9A1",
+            "0x01684C57AE8a4226271068210Ce1cCED865a5AfC",
+            "0xf5De4337Ac5332aF11BffbeC45D950bDDBc1493F",
+            "0x4E53E14de4e264AC2C3fF501ed3Bd6c4Ad63B9A1",
           ],  
           [
             1, 
-            // "1", 
-            // "1", 
-            // "1"
+            1, 
+            1, 
+            1
           ], 
           {
             value: 4
