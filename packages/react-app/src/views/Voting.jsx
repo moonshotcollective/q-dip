@@ -211,11 +211,11 @@ export default function Voting({
     setTotalFunds(ethFund);
     setElecName(election.name);
     // console.log("setTotalVotes ", election.votes.toNumber());
-    setTotalVotes(election.votes.toNumber());
+    setTotalVotes(election.votes);
     const hasVoted = await readContracts.Diplomacy.hasVoted(id, address);
     setAlreadyVoted(hasVoted);
     if (!hasVoted) {
-      setRemainTokens(election.votes.toNumber());
+      setRemainTokens(election.votes);
     }
 
     // console.log("electionCandidates ", electionCandidates);

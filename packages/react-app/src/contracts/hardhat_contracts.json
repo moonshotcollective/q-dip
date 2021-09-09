@@ -1581,7 +1581,7 @@
       "chainId": "80001",
       "contracts": {
         "Diplomacy": {
-          "address": "0xD55f415dbB8824462aD22F0e8397587bABE6B0d3",
+          "address": "0xd2bF2D7b207a2265C84e9EA0957546A8FEe70f72",
           "abi": [
             {
               "inputs": [],
@@ -1866,9 +1866,9 @@
                   "type": "uint32"
                 },
                 {
-                  "internalType": "uint32",
+                  "internalType": "uint256",
                   "name": "funds",
-                  "type": "uint32"
+                  "type": "uint256"
                 },
                 {
                   "internalType": "address",
@@ -2150,9 +2150,9 @@
                   "type": "string"
                 },
                 {
-                  "internalType": "uint32",
+                  "internalType": "uint256",
                   "name": "_funds",
-                  "type": "uint32"
+                  "type": "uint256"
                 },
                 {
                   "internalType": "address",
