@@ -305,7 +305,7 @@ export default function Elections({
   const [tableDataLoading, setTableDataLoading] = useState(false);
   const [fundsType, setFundsType] = useState("MATIC");
   const [tokenAdr, setTokenAdr] = useState("0x0000000000000000000000000000000000000000");
-  const [tokenName, setTokenName] = useState("LINK");
+  const [tokenName, setTokenName] = useState("GTC (PoS)");
 
   let table_state = {
     bordered: true,
@@ -321,8 +321,8 @@ export default function Elections({
         if (value == "MATIC") {
           setTokenAdr("0x0000000000000000000000000000000000000000");
         } else if (value == tokenName) {
-          // LINK-MATIC TOKEN ADDRESS FOR TESTING!
-          const adr = "0x326C977E6efc84E512bB9C30f76E30c160eD06FB";
+          // GTC-MATIC (PoS) TOKEN ADDRESS!
+          const adr = "0xdb95f9188479575F3F718a245EcA1B3BF74567EC";
           setTokenAdr(adr);
         }
       }}
@@ -336,6 +336,7 @@ export default function Elections({
     <Form
       layout="vertical"
       name="form1"
+      form={form1}
       autoComplete="off"
       // labelCol={{ span: 6 }}
       // wrapperCol={{ span: 16 }}
@@ -529,7 +530,10 @@ export default function Elections({
 
             <Descriptions title="Election Details" column={1} size="small" bordered>
               <Descriptions.Item label="Name">{newElecName}</Descriptions.Item>
-              <Descriptions.Item label="Allocated Funds">{newElecAllocatedFunds}</Descriptions.Item>
+              <Descriptions.Item label="Allocated Funds">
+                {fromWei(newElecAllocatedFunds ? newElecAllocatedFunds.toString() : "0") + " " + fundsType}
+              </Descriptions.Item>
+              {/* <Descriptions.Item label="Allocated Funds">{newElecAllocatedFunds}</Descriptions.Item> */}
               <Descriptions.Item label="Votes/Candidate">{newElecAllocatedVotes}</Descriptions.Item>
               <Descriptions.Item label="Candidates">
                 <List

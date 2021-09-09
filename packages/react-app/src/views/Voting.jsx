@@ -1,9 +1,11 @@
 import { PageHeader } from "antd";
 import { useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
-import { Button, Divider, Table, Space } from "antd";
+import { Button, Divider, Table, Space, Typography } from "antd";
 import { fromWei, toWei, toBN } from "web3-utils";
 import { Address, PayButton } from "../components";
+
+const { Text } = Typography;
 
 export default function Voting({
   address,
@@ -23,6 +25,7 @@ export default function Voting({
   const [totalVotes, setTotalVotes] = useState(0);
   const [totalFunds, setTotalFunds] = useState(0);
   const [remainTokens, setRemainTokens] = useState(0);
+  const [errorMsg, setErrorMsg] = useState("");
   const [alreadyVoted, setAlreadyVoted] = useState(false);
   const [canEndElection, setCanEndElection] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
@@ -101,6 +104,7 @@ export default function Voting({
   ];
 
   function minusVote(idx) {
+    setErrorMsg("");
     if (tableDataSrc[idx].n_votes > 0) {
       tableDataSrc[idx].n_votes = tableDataSrc[idx].n_votes - 1;
       setRemainTokens(remainTokens + 1);
@@ -108,6 +112,7 @@ export default function Voting({
   }
 
   function plusVote(idx) {
+    setErrorMsg("");
     if (remainTokens > 0) {
       tableDataSrc[idx].n_votes = tableDataSrc[idx].n_votes + 1;
       setRemainTokens(remainTokens - 1);
@@ -211,11 +216,12 @@ export default function Voting({
     setTotalFunds(ethFund);
     setElecName(election.name);
     // console.log("setTotalVotes ", election.votes.toNumber());
-    setTotalVotes(election.votes.toNumber());
+    setTotalVotes(election.votes);
     const hasVoted = await readContracts.Diplomacy.hasVoted(id, address);
+    console.log({ hasVoted });
     setAlreadyVoted(hasVoted);
     if (!hasVoted) {
-      setRemainTokens(election.votes.toNumber());
+      setRemainTokens(election.votes);
     }
 
     // console.log("electionCandidates ", electionCandidates);
@@ -248,6 +254,11 @@ export default function Voting({
 
   const castVotes = async () => {
     console.log("castVotes");
+    if (remainTokens > 0) {
+      setErrorMsg("All remaining votes need to be distributed");
+      return;
+    }
+    setErrorMsg(null);
     setIsVoting(true);
 
     const election = await readContracts.Diplomacy.getElectionById(id);
@@ -255,6 +266,7 @@ export default function Voting({
     const votes = [];
     for (let i = 0; i < tableDataSrc.length; i++) {
       votes.push(Math.sqrt(tableDataSrc[i].n_votes).toString());
+      totalVotes += tableDataSrc[i].n_votes;
     }
 
     const result = tx(writeContracts.Diplomacy.castBallot(id, adrs, votes), update => {
@@ -465,7 +477,11 @@ export default function Voting({
             <Table dataSource={tableDataSrc} columns={voted_columns} pagination={{ pageSize: 5 }} />
           )}
           <Divider />
-          {alreadyVoted && <h3>Votes Received! Thanks!</h3>}
+          {alreadyVoted && <Text>Votes Received! Thanks!</Text>}
+          <Divider />
+          {isElecPayoutComplete && <Text type="success">Election Payout Complete!</Text>}
+          <Divider />
+          {errorMsg && <Text type="danger">{errorMsg}</Text>}
         </PageHeader>
       </div>
     </>

@@ -54,7 +54,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         bool paid;                              // Election payout status
         uint32 createdAt;                      // Creation block time-stamp
         address[] candidates;                   // Candidates (who can vote/be voted)
-        uint32 funds;                          // Allowance of ETH or Tokens for Election
+        uint256 funds;                          // Allowance of ETH or Tokens for Election
         address token;                          // Address of Election Token (Eth -> 0x00..)
         int8 votes;                          // Number of votes delegated to each candidate
         address admin;                          // Address of Election Admin
@@ -125,7 +125,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     */
     function _newEthElection(
         string memory _name,
-        uint32 _funds,
+        uint256 _funds,
         int8 _votes,
         address[] memory _adrs
     ) internal returns (uint256 electionId) {
@@ -147,7 +147,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     */
     function _newTokenElection(
         string memory _name,
-        uint32 _funds,
+        uint256 _funds,
         address _token,
         int8 _votes,
         address[] memory _adrs
@@ -170,7 +170,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     */
     function newElection(
         string memory _name,
-        uint32 _funds,
+        uint256 _funds,
         address _token,
         int8 _votes,
         address[] memory _adrs

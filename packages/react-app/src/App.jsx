@@ -46,7 +46,7 @@ const { ethers } = require("ethers");
 /// 📡 What chain are your contracts deployed to?
 // const targetNetwork = NETWORKS.kovan; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 //const targetNetwork = NETWORKS.localhost;
-const targetNetwork = NETWORKS.mumbai;
+const targetNetwork = NETWORKS.mumbai; 
 
 // 😬 Sorry for all the console logging
 const DEBUG = false;
@@ -380,38 +380,9 @@ function App(props) {
       <Header />
       {networkDisplay}
       <BrowserRouter>
-        <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode="horizontal">
-          <Menu.Item key="/">
-            <Link
-              onClick={() => {
-                setRoute("/");
-              }}
-              to="/"
-            >
-              Diplomacy Contract
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/elections">
-            <Link
-              onClick={() => {
-                setRoute("/elections");
-              }}
-              to="/elections"
-            >
-              Elections
-            </Link>
-          </Menu.Item>
-        </Menu>
 
         <Switch>
-          <Route exact path="/">
-            {/*
-                🎛 this scaffolding is full of commonly used components
-                this <Contract/> component will automatically parse your ABI
-                and give you a form to interact with it locally
-            */}
-            {/* <Redirect to="/elections" /> */}
-
+          <Route exact path="/contract">
             <Contract
               name="Diplomacy"
               signer={userSigner}
@@ -433,7 +404,7 @@ function App(props) {
               readContracts={readContracts}
             />
           </Route>
-          <Route path="/elections">
+          <Route path="/">
             <Elections
               address={address}
               userSigner={userSigner}
@@ -482,7 +453,7 @@ function App(props) {
 
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
       <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
-        <Row align="middle" gutter={[4, 4]}>
+        {/* <Row align="middle" gutter={[4, 4]}>
           <Col span={8}>
             <Ramp price={price} address={address} networks={NETWORKS} />
           </Col>
@@ -504,7 +475,7 @@ function App(props) {
               Support
             </Button>
           </Col>
-        </Row>
+        </Row> */}
 
         <Row align="middle" gutter={[4, 4]}>
           <Col span={24}>
