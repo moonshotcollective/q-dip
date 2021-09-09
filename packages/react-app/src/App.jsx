@@ -1,15 +1,14 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { Caip10Link } from '@ceramicnetwork/stream-caip10-link';
 import { TileDocument } from '@ceramicnetwork/stream-tile';
-import {
-  useMultiAuth,
-} from '@ceramicstudio/multiauth'
 import WalletLink from "walletlink";
 import { Alert, Button, Col, Menu, Row } from "antd";
 import "antd/dist/antd.css";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { BrowserRouter, Link, Route, Switch, Redirect } from "react-router-dom";
 import Web3Modal from "web3modal";
+import { useStoreActions, useStoreState } from 'easy-peasy';
+
 import "./App.css";
 import { Account, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
@@ -26,7 +25,6 @@ import {
 } from "./hooks";
 // import Hints from "./Hints";
 import { Voting, Elections, Hints, Subgraph } from "./views";
-
 const { ethers } = require("ethers");
 /*
     Welcome to 🏗 scaffold-eth !
@@ -131,15 +129,52 @@ function App(props) {
   const [injectedProvider, setInjectedProvider] = useState();
   const [address, setAddress] = useState();
 
+  const { basicProfile, cryptoAccounts } = useStoreState((state) => state.user);
+  const { setBasicProfile, setCryptoAccounts } = useStoreActions(actions => actions.user);
+  const votes = useStoreState((state) => state.vote.votes);
+  const addVote = useStoreActions(actions => actions.vote.addVote);
+  console.log({ basicProfile, votes, cryptoAccounts })
+
   const testCeramic = async () => {
     const { idx, ceramic, schemasCommitId } = await makeCeramicClient(address)
-    if (ceramic?.did?.id){
-      const doc = await TileDocument.create(ceramic, [{address: "0x14bb6d4d3C70207fc205D9D510790Ca6d854fe44", voteCount: 1}], {
-        controllers: [ceramic?.did?.id],
-        family: 'vote',
-        schema: schemasCommitId.vote,
-      });
-      console.log({doc})
+    const [bp, ca, existingVotes] = await Promise.all([
+      await idx.get('basicProfile'),
+      await idx.get('cryptoAccounts'),
+      await idx.get('votes'),
+    ]);
+    console.log({ existingVotes })
+    setBasicProfile(bp)
+    setCryptoAccounts(ca)
+
+    if (ceramic?.did?.id) {
+      const ballotDoc = await TileDocument.create(ceramic,
+        [{ address: "0x14bb6d4d3C70207fc205D9D510790Ca6d854fe44", voteCount: 1 }],
+        {
+          controllers: [ceramic.did.id],
+          family: 'vote',
+          schema: schemasCommitId.vote
+        },
+      );
+      await ballotDoc.makeReadOnly();
+
+      const achStatus = await ballotDoc.requestAnchor();
+      const ballotCommitId = ballotDoc.commitId.toUrl();
+
+      const previousVotes = await idx.get('votes', ceramic.did.id) || {};
+
+      await idx.merge('basicProfile', { description: 'hi from qd' })
+      await idx.set('votes', [{ id: ballotDoc.id.toUrl(), name: 'Election name here' }, ...Object.values(previousVotes)])
+
+      // const loadedDoc = await TileDocument.load(ceramic, "ceramic://k3y52l7qbv1frykoouv0bh4d3c509jnqdc4digho0ofh5s886ukf06ev06yt6kfls")
+      // console.log('before update')
+      // console.log('doc 2',loadedDoc.content);
+
+      // await loadedDoc.update([])
+      // addVote(ballotDoc.id.toString());
+      // const afterUpdateDoc = await TileDocument.load(ceramic, loadedDoc.id)
+      // console.log('after update', afterUpdateDoc.content)
+      // const afterUpdateDocOG = await TileDocument.load(ceramic, "ceramic://k3y52l7qbv1frykoouv0bh4d3c509jnqdc4digho0ofh5s886ukf06ev06yt6kfls")
+      // console.log('after update OG', afterUpdateDocOG.content)
     }
   }
 

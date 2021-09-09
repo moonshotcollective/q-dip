@@ -1,41 +1,41 @@
 const VoteSchema = {
-  $schema: 'http://json-schema.org/draft-07/schema#',
-  title: 'Vote',
-  type: 'array',
+  $schema: "http://json-schema.org/draft-07/schema#",
+  title: "Vote",
+  type: "array",
   items: {
-    type: 'object',
+    type: "object",
     properties: {
       address: {
-        type: 'string',
-        title: 'address',
+        type: "string",
+        title: "address",
         maxLength: 42,
       },
       voteCount: {
-        type: 'integer',
-        title: 'voteCount',
+        type: "integer",
+        title: "voteCount",
       },
     },
   }
 }
 
 const VotesListSchema = {
-  $schema: 'http://json-schema.org/draft-07/schema#',
-  title: 'VotesList',
-  type: 'object',
+  $schema: "http://json-schema.org/draft-07/schema#",
+  title: "VotesList",
+  type: "object",
   properties: {
     Votes: {
-      type: 'array',
-      title: 'votes',
+      type: "array",
+      title: "votes",
       items: {
-        type: 'object',
-        title: 'VoteItem',
+        type: "object",
+        title: "VoteItem",
         properties: {
           id: {
-            $ref: '#/definitions/CeramicStreamId',
+            $ref: "#/definitions/CeramicStreamId",
           },
           name: {
-            type: 'string',
-            title: 'name',
+            type: "string",
+            title: "name",
             maxLength: 150,
           },
         },
@@ -44,8 +44,8 @@ const VotesListSchema = {
   },
   definitions: {
     CeramicStreamId: {
-      type: 'string',
-      pattern: '^ceramic://.+(\\\\?version=.+)?',
+      type: "string",
+      pattern: "^ceramic://.+(\\\\?version=.+)?",
       maxLength: 150,
     },
   },
