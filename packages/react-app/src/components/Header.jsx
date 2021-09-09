@@ -5,12 +5,9 @@ import React from "react";
 
 export default function Header() {
   return (
-    <a href="https://github.com/austintgriffith/scaffold-eth" target="_blank" rel="noopener noreferrer">
       <PageHeader
         title="🤑 Quadratic Diplomacy"
         subTitle="Protocol for open-source quadratic contribution voting"
-        style={{ cursor: "pointer" }}
       />
-    </a>
   );
 }
