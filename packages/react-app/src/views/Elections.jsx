@@ -529,7 +529,7 @@ export default function Elections({
 
             <Descriptions title="Election Details" column={1} size="small" bordered>
               <Descriptions.Item label="Name">{newElecName}</Descriptions.Item>
-              <Descriptions.Item label="Allocated Funds">{newElecAllocatedFunds}</Descriptions.Item>
+              <Descriptions.Item label="Allocated Funds">{fromWei(newElecAllocatedFunds ? newElecAllocatedFunds.toString() : "0") + " " + fundsType}</Descriptions.Item>
               <Descriptions.Item label="Votes/Candidate">{newElecAllocatedVotes}</Descriptions.Item>
               <Descriptions.Item label="Candidates">
                 <List
