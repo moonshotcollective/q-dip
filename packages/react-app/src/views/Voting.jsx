@@ -61,10 +61,10 @@ export default function Voting({
       render: (text, record, index) => (
         <>
           <Space size="middle">
-            <Button type="default" size="small" onClick={() => plusVote(index)}>
+            <Button type="default" size="small" onClick={() => plusVote(record, index)}>
               ➕
             </Button>
-            <Button type="default" size="small" onClick={() => minusVote(index)}>
+            <Button type="default" size="small" onClick={() => minusVote(record, index)}>
               ➖
             </Button>
           </Space>
@@ -103,18 +103,18 @@ export default function Voting({
     },
   ];
 
-  function minusVote(idx) {
+  function minusVote(record, idx) {
     setErrorMsg("");
-    if (tableDataSrc[idx].n_votes > 0) {
-      tableDataSrc[idx].n_votes = tableDataSrc[idx].n_votes - 1;
+    if (tableDataSrc[record.key].n_votes > 0) {
+      tableDataSrc[record.key].n_votes = tableDataSrc[record.key].n_votes - 1;
       setRemainTokens(remainTokens + 1);
     }
   }
 
-  function plusVote(idx) {
+  function plusVote(record, idx) {
     setErrorMsg("");
     if (remainTokens > 0) {
-      tableDataSrc[idx].n_votes = tableDataSrc[idx].n_votes + 1;
+      tableDataSrc[record.key].n_votes = tableDataSrc[record.key].n_votes + 1;
       setRemainTokens(remainTokens - 1);
     }
   }
