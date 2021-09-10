@@ -1,0 +1,15 @@
+{
+  "name": "q-dip-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "QEDK",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^3.21.0",
+    "web3": "^1.5.2"
+  }
+}
