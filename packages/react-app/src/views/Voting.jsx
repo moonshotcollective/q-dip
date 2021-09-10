@@ -19,7 +19,7 @@ export default function Voting({
 }) {
   let { id } = useParams();
   const [tableDataSrc, setTableDataSrc] = useState([]);
-  const [token, setToken] = useState("MATIC");
+  const [token, setToken] = useState("ETH");
   const [election, setElection] = useState();
   const [elecName, setElecName] = useState("");
   const [totalVotes, setTotalVotes] = useState(0);
@@ -131,7 +131,7 @@ export default function Voting({
 
   useEffect(() => {
     if (!election) return;
-    let fundingType = "MATIC";
+    let fundingType = "ETH";
     if (election.token != "0x0000000000000000000000000000000000000000") {
       fundingType = getTokenName(election.token);
     }

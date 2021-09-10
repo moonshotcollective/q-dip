@@ -5,7 +5,7 @@
       "chainId": "4",
       "contracts": {
         "Diplomacy": {
-          "address": "0xEf8275a524eDa6Ac4D44431D6ACE761fEC1132FF",
+          "address": "0xb1EE5A91d220142Efb2a4622EBBc5DF86c92D682",
           "abi": [
             {
               "inputs": [],
@@ -285,9 +285,9 @@
                   "type": "bool"
                 },
                 {
-                  "internalType": "uint256",
+                  "internalType": "uint32",
                   "name": "createdAt",
-                  "type": "uint256"
+                  "type": "uint32"
                 },
                 {
                   "internalType": "uint256",
@@ -300,9 +300,9 @@
                   "type": "address"
                 },
                 {
-                  "internalType": "uint256",
+                  "internalType": "int8",
                   "name": "votes",
-                  "type": "uint256"
+                  "type": "int8"
                 },
                 {
                   "internalType": "address",
@@ -367,9 +367,9 @@
                   "type": "address"
                 },
                 {
-                  "internalType": "uint256",
+                  "internalType": "int8",
                   "name": "votes",
-                  "type": "uint256"
+                  "type": "int8"
                 },
                 {
                   "internalType": "address",
@@ -584,9 +584,9 @@
                   "type": "address"
                 },
                 {
-                  "internalType": "uint256",
+                  "internalType": "int8",
                   "name": "_votes",
-                  "type": "uint256"
+                  "type": "int8"
                 },
                 {
                   "internalType": "address[]",

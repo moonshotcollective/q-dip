@@ -28,7 +28,8 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 // const defaultNetwork = "localhost";
 // const defaultNetwork = "mumbai";
-const defaultNetwork = "matic";
+// const defaultNetwork = "matic";
+const defaultNetwork = "rinkeby";
 
 function mnemonic() {
   try {

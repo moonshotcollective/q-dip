@@ -303,9 +303,9 @@ export default function Elections({
   const [toAddress, setToAddress] = useState("");
 
   const [tableDataLoading, setTableDataLoading] = useState(false);
-  const [fundsType, setFundsType] = useState("MATIC");
+  const [fundsType, setFundsType] = useState("ETH");
   const [tokenAdr, setTokenAdr] = useState("0x0000000000000000000000000000000000000000");
-  const [tokenName, setTokenName] = useState("GTC (PoS)");
+  const [tokenName, setTokenName] = useState("GTC");
 
   let table_state = {
     bordered: true,
@@ -314,20 +314,20 @@ export default function Elections({
 
   const selectFundsType = (
     <Select
-      defaultValue="MATIC"
+      defaultValue="ETH"
       className="select-funds-type"
       onChange={value => {
         setFundsType(value);
-        if (value == "MATIC") {
+        if (value == "ETH") {
           setTokenAdr("0x0000000000000000000000000000000000000000");
         } else if (value == tokenName) {
-          // GTC-MATIC (PoS) TOKEN ADDRESS!
-          const adr = "0xdb95f9188479575F3F718a245EcA1B3BF74567EC";
+          // GTC-ETH TOKEN ADDRESS!
+          const adr = "0xde30da39c46104798bb5aa3fe8b9e0e1f348163f";
           setTokenAdr(adr);
         }
       }}
     >
-      <Option value="MATIC">MATIC</Option>
+      <Option value="ETH">ETH</Option>
       <Option value={tokenName}>{tokenName}</Option>
     </Select>
   );
@@ -380,7 +380,7 @@ export default function Elections({
           onChange={e => {
             if (!isNaN(Number(e.target.value))) {
               let funds;
-              if (fundsType === "MATIC") {
+              if (fundsType === "ETH") {
                 funds = toWei(Number(e.target.value).toFixed(18).toString());
               } else if (fundsType === tokenName) {
                 funds = toWei(Number(e.target.value).toFixed(18).toString()); //*10^18 for Tokens?? -> toWei does this, but hacky
