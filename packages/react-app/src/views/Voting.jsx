@@ -161,7 +161,7 @@ export default function Voting({
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
       console.log(eventName, eventBlockNum, localProvider._lastBlockNumber);
-      if (eventBlockNum >= localProvider._lastBlockNumber - 5) {
+      if (eventBlockNum >= localProvider._lastBlockNumber - 15) {
         let msg = args.pop().args;
         callback(msg);
       }
@@ -266,7 +266,6 @@ export default function Voting({
     const votes = [];
     for (let i = 0; i < tableDataSrc.length; i++) {
       votes.push(Math.sqrt(tableDataSrc[i].n_votes).toString());
-      totalVotes += tableDataSrc[i].n_votes;
     }
 
     const result = tx(writeContracts.Diplomacy.castBallot(id, adrs, votes), update => {

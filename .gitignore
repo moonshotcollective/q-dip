@@ -111,3 +111,4 @@ artifacts/
 
 # Cache 
 cache/
+packages/react-app/build/

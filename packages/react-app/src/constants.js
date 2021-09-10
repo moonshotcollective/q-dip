@@ -70,7 +70,7 @@ export const NETWORKS = {
     chainId: 137,
     price: 1,
     gasPrice: 1000000000,
-    rpcUrl: `https://polygon-mumbai.infura.io/v3/${INFURA_ID}`,
+    rpcUrl: `https://polygon-mainnet.infura.io/v3/${INFURA_ID}`,
     faucet: "https://faucet.matic.network/",
     blockExplorer: "https://explorer-mainnet.maticvigil.com//",
   },

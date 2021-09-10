@@ -169,7 +169,7 @@ export default function Elections({
     readContracts[contractName].on(eventName, (...args) => {
       let eventBlockNum = args[args.length - 1].blockNumber;
       console.log(eventName, eventBlockNum, localProvider._lastBlockNumber);
-      if (eventBlockNum >= localProvider._lastBlockNumber - 5) {
+      if (eventBlockNum >= localProvider._lastBlockNumber - 15) {
         callback();
       }
     });

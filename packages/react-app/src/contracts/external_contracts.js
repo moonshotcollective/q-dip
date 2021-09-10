@@ -818,4 +818,12 @@ module.exports = {
       },
     },
   },
+  137: {
+    contracts: {
+      GTC: {
+        address: "0xdb95f9188479575F3F718a245EcA1B3BF74567EC",
+        abi: ERC20ABI,
+      },
+    },
+  },
 };

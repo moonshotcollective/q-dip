@@ -27,8 +27,8 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 // Select the network you want to deploy to here:
 //
 // const defaultNetwork = "localhost";
-// const defaultNetwork = "mumbai";
-const defaultNetwork = "matic";
+const defaultNetwork = "mumbai";
+// const defaultNetwork = "matic";
 
 function mnemonic() {
   try {
@@ -46,10 +46,10 @@ function mnemonic() {
 module.exports = {
   // hardhat gas reporter configs
   gasReporter: {
-    currency: 'USD',
-    gasPrice: 50, 
-    coinmarketcap: "dd389059-9822-4d8c-8fc0-d5d37982f64f"
-  }, 
+    currency: "USD",
+    gasPrice: 50,
+    coinmarketcap: "dd389059-9822-4d8c-8fc0-d5d37982f64f",
+  },
 
   defaultNetwork,
 
