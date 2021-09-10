@@ -266,7 +266,7 @@ export default function Voting({
     const votes = [];
     for (let i = 0; i < tableDataSrc.length; i++) {
       votes.push(Math.sqrt(tableDataSrc[i].n_votes).toString());
-      totalVotes += tableDataSrc[i].n_votes;
+      setTotalVotes(totalVotes + tableDataSrc[i].n_votes);
     }
 
     const result = tx(writeContracts.Diplomacy.castBallot(id, adrs, votes), update => {
