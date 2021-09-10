@@ -41,6 +41,9 @@ export default function Voting({
   const [amount, setAmount] = useState(0);
   const [spender, setSpender] = useState("");
 
+  const [chartScoreData, setChartScoreData] = useState([[], []]);
+  const [chartPayoutData, setChartPayoutData] = useState([[], []]);
+
   const voting_columns = [
     {
       title: "Address",
@@ -242,6 +245,16 @@ export default function Voting({
       let weiToPay = 0;
       data.push({ key: i, address: addr, n_votes: 0, score: scoresSum, payout: weiToPay });
     }
+
+    setChartScoreData(data.reduce((tupleArray, tuple) => [
+      [...tupleArray[0], tuple.name],
+      [...tupleArray[1], parseFloat(tuple.score)],
+    ] ,[[],[]]));
+
+    setChartPayoutData(data.reduce((tupleArray, tuple) => [
+      [...tupleArray[0], tuple.name],
+      [...tupleArray[1], fromWei(tuple.payout)],
+    ] ,[[],[]]));
 
     let payoutInfo = await calculatePayout();
     payoutInfo.payout.forEach((p, i) => {
@@ -483,6 +496,14 @@ export default function Voting({
           <Divider />
           {errorMsg && <Text type="danger">{errorMsg}</Text>}
         </PageHeader>
+
+        <Divider />
+
+        <SpiderChart data={chartScoreData[1]} names={chartScoreData[0]} title={"Scores"} chartType="area" />
+
+        <Divider />
+
+        <SpiderChart data={chartPayoutData[1]} names={chartPayoutData[0]} title={"Payout Distribution"} chartType="area" />
       </div>
     </>
   );
