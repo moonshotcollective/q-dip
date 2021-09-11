@@ -9,6 +9,7 @@ contract EIP712MetaTransaction is EIP712Base {
     bytes32 private constant META_TRANSACTION_TYPEHASH = keccak256(bytes("MetaTransaction(uint256 nonce,address from,bytes functionSignature)"));
 
     event MetaTransactionExecuted(address userAddress, address payable relayerAddress, bytes functionSignature);
+    event BatchMetaTransactionExecuted(address payable relayerAddress, uint256 functionCalls);
     mapping(address => uint256) private nonces;
 
     /*
@@ -51,6 +52,15 @@ contract EIP712MetaTransaction is EIP712Base {
         require(success, "Function call not successful");
         emit MetaTransactionExecuted(userAddress, payable(msg.sender), functionSignature);
         return returnData;
+    }
+
+    function executeBatchMetaTransaction(bytes[] calldata mtx, uint256 size) public payable returns(bool) {
+        for (uint256 i = 0; i < size; i++) {
+            (address userAddress, bytes memory functionSignature, bytes32 sigR, bytes32 sigS, uint8 sigV) = abi.decode(mtx[i], (address, bytes, bytes32, bytes32, uint8));
+            executeMetaTransaction(userAddress, functionSignature, sigR, sigS, sigV);
+        }
+        emit BatchMetaTransactionExecuted(payable(msg.sender), size);
+        return true;
     }
 
     function hashMetaTransaction(MetaTransaction memory metaTx) internal pure returns (bytes32) {
