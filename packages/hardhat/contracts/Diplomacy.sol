@@ -37,36 +37,39 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./EIP712MetaTransaction.sol";
 
-contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
+contract Diplomacy is AccessControl, Ownable, ReentrancyGuard, EIP712MetaTransaction("Diplomacy", "1") {
+    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     /**
-    @notice Election Definition 
+    @notice Election Definition
     */
     struct Election {
         string name;                            // Creator title/names/etc
         bool active;                            // Election status
         bool paid;                              // Election payout status
-        uint32 createdAt;                      // Creation block time-stamp
+        uint256 createdAt;                      // Creation block time-stamp
         address[] candidates;                   // Candidates (who can vote/be voted)
         uint256 funds;                          // Allowance of ETH or Tokens for Election
         address token;                          // Address of Election Token (Eth -> 0x00..)
-        int8 votes;                          // Number of votes delegated to each candidate
+        uint256 votes;                          // Number of votes delegated to each candidate
         address admin;                          // Address of Election Admin
     }
-    
+
     mapping(uint256 => mapping(address => bool)) public voted;      // Election-candidate vote status
     mapping(uint256 => mapping(address => string[])) public scores; // Election-candidate submitted scores
 
     mapping(uint256 => Election) public elections;
-    
+
     constructor() ReentrancyGuard() {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, msgSender());
     }
 
     event BallotCast(address voter, uint256 electionId, address[] adrs, string[] scores);
@@ -81,23 +84,23 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
 
     modifier onlyContractAdmin() {
 
-        require( hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender not Contract Admin!" );
+        require( hasRole(DEFAULT_ADMIN_ROLE, msgSender()), "Sender not Contract Admin!" );
         _;
 
     }
 
     modifier onlyElectionCandidate(uint256 electionId) {
 
-        require( hasRole(ELECTION_CANDIDATE_ROLE, msg.sender), "Sender not Election Candidate!" );
-        require( isElectionCandidate(electionId, msg.sender), "Sender not Election Candidate!" );
+        require( hasRole(ELECTION_CANDIDATE_ROLE, msgSender()), "Sender not Election Candidate!" );
+        require( isElectionCandidate(electionId, msgSender()), "Sender not Election Candidate!" );
         _;
 
     }
 
     modifier onlyElectionAdmin(uint256 electionId) {
 
-        require( hasRole(ELECTION_ADMIN_ROLE, msg.sender), "Sender not Election Admin!" );
-        require( msg.sender == elections[electionId].admin, "Sender not Election Admin!" );
+        require( hasRole(ELECTION_ADMIN_ROLE, msgSender()), "Sender not Election Admin!" );
+        require( msgSender() == elections[electionId].admin, "Sender not Election Admin!" );
         _;
 
     }
@@ -109,10 +112,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     ) {
 
         require( elections[electionId].active, "Election Not Active!" );
-        require( !elections[electionId].paid, "Election is already paid-out!" );
-        require( !voted[electionId][msg.sender], "Sender already voted!" );
-        require( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
-        require( _adrs.length == elections[electionId].candidates.length, "Address - Candidate Mismatch!"); 
+        require( !voted[electionId][msgSender()], "Sender already voted!" );
+        require ( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
         //require ( _scores.length == elections[electionId].votes, "Not enough votes sent!" );
         _;
 
@@ -126,19 +127,19 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     function _newEthElection(
         string memory _name,
         uint256 _funds,
-        int8 _votes,
+        uint256 _votes,
         address[] memory _adrs
     ) internal returns (uint256 electionId) {
-        
+
         electionId = numElections++; // why does .add break it?
         Election storage election = elections[electionId];
         election.name = _name;
         election.funds = _funds;
         election.votes = _votes;
         election.candidates = _adrs;
-        election.createdAt = uint32(block.timestamp);
+        election.createdAt = block.timestamp;
         election.active = true;
-        election.admin = msg.sender;
+        election.admin = msgSender();
 
     }
 
@@ -149,30 +150,31 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         string memory _name,
         uint256 _funds,
         address _token,
-        int8 _votes,
+        uint256 _votes,
         address[] memory _adrs
     ) internal returns (uint256 electionId) {
 
         electionId = numElections++;
-        elections[electionId].name = _name;
-        elections[electionId].funds = _funds;
-        elections[electionId].token = _token;
-        elections[electionId].votes = _votes;
-        elections[electionId].candidates = _adrs;
-        elections[electionId].createdAt = uint32(block.timestamp);
-        elections[electionId].active = true;
-        elections[electionId].admin = msg.sender;
+        Election storage election = elections[electionId];
+        election.name = _name;
+        election.funds = _funds;
+        election.token = _token;
+        election.votes = _votes;
+        election.candidates = _adrs;
+        election.createdAt = block.timestamp;
+        election.active = true;
+        election.admin = msgSender();
 
     }
 
    /**
-    @notice Create a new election  
+    @notice Create a new election
     */
     function newElection(
         string memory _name,
         uint256 _funds,
         address _token,
-        int8 _votes,
+        uint256 _votes,
         address[] memory _adrs
     ) public returns (uint256 electionId) {
 
@@ -183,8 +185,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         }
         // Setup roles
         _setElectionCandidateRoles(_adrs);
-        _setElectionAdminRole(msg.sender);
-        emit ElectionCreated(msg.sender, electionId);
+        _setElectionAdminRole(msgSender());
+        emit ElectionCreated(msgSender(), electionId);
 
     }
 
@@ -195,36 +197,36 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         uint256 electionId,
         address[] memory _adrs,
         string[] memory _scores // submitted sqrt of votes
-    ) public onlyElectionCandidate(electionId) 
+    ) public onlyElectionCandidate(electionId)
         validBallot(electionId, _adrs, _scores) {
-        
+
         for (uint256 i = 0; i < _adrs.length; i++) {
-            scores[electionId][_adrs[i]].push(_scores[i]); 
+            scores[electionId][_adrs[i]].push(_scores[i]);
         }
-        voted[electionId][msg.sender] = true;
-        emit BallotCast(msg.sender, electionId, _adrs, _scores);
+        voted[electionId][msgSender()] = true;
+        emit BallotCast(msgSender(), electionId, _adrs, _scores);
 
     }
 
     /**
     @notice End an Active Election
     */
-    function endElection(uint256 electionId) 
+    function endElection(uint256 electionId)
     public onlyElectionAdmin(electionId) {
 
-        require( elections[electionId].active, "Election Already Ended!" );
-        require( !elections[electionId].paid, "Election has already been paid out!" );
-        elections[electionId].active = false;
-        emit ElectionEnded(electionId); // look into diff methods 
+        Election storage election = elections[electionId];
+        require( election.active, "Election Already Ended!" );
+        election.active = false;
+        emit ElectionEnded(electionId); // look into diff methods
 
     }
 
     /**
-    @notice Payout the election with ETH 
+    @notice Payout the election with ETH
     */
     function _ethPayout(
-        uint256 electionId, 
-        address[] memory _adrs, 
+        uint256 electionId,
+        address[] memory _adrs,
         uint256[] memory _pay
     ) internal onlyElectionAdmin(electionId) returns(bool) {
 
@@ -234,29 +236,28 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
             require( elections[electionId].candidates[i] == _adrs[i], "Election-Address Mismatch!" );
             paySum += _pay[i];
         }
-        require( msg.value >= paySum, "Not enough value sent!" );
         for (uint256 i = 0; i < _pay.length; i++) {
             // Call returns a boolean value indicating success or failure.
-            (bool sent, ) = _adrs[i].call{value: _pay[i]}("");
-            require( sent, "Failed to send Ether" );
+            (bool sent, bytes memory data) = _adrs[i].call{value: _pay[i]}("");
+            require(sent, "Failed to send Ether");
         }
-        
-        return true; 
+
+        return true;
 
     }
 
     /**
-    @notice Payout the election with the selected token  
+    @notice Payout the election with the selected token
     */
     function _tokenPayout(
-        uint256 electionId, 
-        address[] memory _adrs, 
+        uint256 electionId,
+        address[] memory _adrs,
         uint256[] memory _pay
     ) internal returns(bool) {
 
         // Distribute tokens to each candidate
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
-            IERC20(elections[electionId].token).safeTransferFrom(msg.sender, _adrs[i], _pay[i]); // omit
+            IERC20(elections[electionId].token).safeTransferFrom(msgSender(), _adrs[i], _pay[i]); // omit
         }
         return true;
 
@@ -280,14 +281,13 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     ) public payable onlyElectionAdmin(electionId) nonReentrant() {
 
         require( !elections[electionId].active, "Election Still Active!" );
-        require( !elections[electionId].paid, "Election Already Paid-out!" );
         bool status;
         if ( elections[electionId].token == address(0) ) {
             status = _ethPayout(electionId, _adrs, _pay);
         } else {
             status = _tokenPayout(electionId, _adrs, _pay);
         }
-		elections[electionId].paid = status;
+        elections[electionId].paid = status;
         emit ElectionPaid(electionId);
 
     }
@@ -306,11 +306,11 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     }
 
     /**
-    @notice Get election metadata by the ID  
-    */ 
-    // Use a struct mapping instead! 
+    @notice Get election metadata by the ID
+    */
+    // Use a struct mapping instead!
     function getElectionById(uint256 electionId)
-    public view 
+    public view
     returns (
         string memory name,
         address[] memory candidates,
@@ -318,7 +318,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         uint256 createdAt,
         uint256 funds,
         address token,
-        int8 votes,
+        uint256 votes,
         address admin,
         bool isActive,
         bool paid
