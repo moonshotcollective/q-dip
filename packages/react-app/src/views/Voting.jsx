@@ -3,7 +3,11 @@ import { useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { Button, Divider, Table, Space } from "antd";
 import { fromWei, toWei, toBN } from "web3-utils";
+import { TileDocument } from "@ceramicnetwork/stream-tile";
+import { useStoreActions, useStoreState } from "easy-peasy";
 import { Address, PayButton } from "../components";
+import { makeCeramicClient } from "../helpers";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Voting({
   address,
@@ -15,6 +19,10 @@ export default function Voting({
   writeContracts,
   yourLocalBalance,
 }) {
+  const { basicProfile, cryptoAccounts } = useStoreState(state => state.user);
+  const { setBasicProfile, setCryptoAccounts } = useStoreActions(actions => actions.user);
+  const votes = useStoreState(state => state.vote.votes);
+  const addVote = useStoreActions(actions => actions.vote.addVote);
   let { id } = useParams();
   const [tableDataSrc, setTableDataSrc] = useState([]);
   const [token, setToken] = useState("MATIC");
@@ -249,7 +257,6 @@ export default function Voting({
   const castVotes = async () => {
     console.log("castVotes");
     setIsVoting(true);
-
     const election = await readContracts.Diplomacy.getElectionById(id);
     const adrs = election.candidates; // hmm...
     const votes = [];
@@ -257,17 +264,45 @@ export default function Voting({
       votes.push(Math.sqrt(tableDataSrc[i].n_votes).toString());
     }
 
-    const result = tx(writeContracts.Diplomacy.castBallot(id, adrs, votes), update => {
-      console.log("📡 Transaction Update:", update);
-      if (update && (update.status === "confirmed" || update.status === 1)) {
-        console.log(" 🍾 Transaction " + update.hash + " finished!");
-      } else {
-        console.log("update error ", update.status);
-        setIsVoting(false);
-      }
-    });
-    console.log("awaiting metamask/web3 confirm result...", result);
-    console.log(await result);
+    const voteAttribution = votes.map((voteAttributionCount, i) => ({
+      address: election.candidates[i],
+      voteAttribution: voteAttributionCount,
+    }));
+
+    console.log({ voteAttribution });
+    const { idx, ceramic, schemasCommitId } = await makeCeramicClient(address);
+    const [bp, ca, existingVotes] = await Promise.all([
+      await idx.get("basicProfile"),
+      await idx.get("cryptoAccounts"),
+      await idx.get("votes"),
+    ]);
+    // TODO: check if already voted for this election through another address
+    console.log({ existingVotes });
+    const hasAlreadyVotedForElec = Object.values(existingVotes).find(vote => vote.name === election.name);
+    if (hasAlreadyVotedForElec) {
+      setAlreadyVoted(true);
+      toast.error("Already voted for this election");
+    }
+    setBasicProfile(bp);
+    setCryptoAccounts(ca);
+
+    if (ceramic?.did?.id) {
+      const ballotDoc = await TileDocument.create(ceramic, voteAttribution, {
+        controllers: [ceramic.did.id],
+        family: "vote",
+        schema: schemasCommitId.vote,
+      });
+      await ballotDoc.makeReadOnly();
+
+      const anchorStatus = await ballotDoc.requestAnchor();
+
+      const previousVotes = (await idx.get("votes", ceramic.did.id)) || {};
+      await idx.set("votes", [{ id: ballotDoc.id.toUrl(), name: election.name }, ...Object.values(previousVotes)]);
+
+      const sealedBallot = ballotDoc.commitId.toUrl();
+      console.log({ anchorStatus, ballotDoc: ballotDoc });
+    }
+    setIsVoting(false);
     // updateView();
   };
 
@@ -398,6 +433,7 @@ export default function Voting({
         className="voting-view"
         style={{ border: "1px solid #cccccc", padding: 16, width: 900, margin: "auto", marginTop: 64 }}
       >
+        <Toaster position="bottom-right" reverseOrder={false} />
         <PageHeader
           ghost={false}
           onBack={() => window.history.back()}
@@ -437,6 +473,7 @@ export default function Voting({
                 type="primary"
                 size="large"
                 shape="round"
+                disabled={isVoting || alreadyVoted}
                 style={{ margin: 4 }}
                 onClick={() => castVotes()}
                 loading={isVoting}

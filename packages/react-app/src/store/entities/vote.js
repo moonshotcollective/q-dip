@@ -1,4 +1,4 @@
-import { action } from 'easy-peasy';
+import { action } from "easy-peasy";
 
 export const vote = {
   votes: [],

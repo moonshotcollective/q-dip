@@ -1,6 +1,4 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { Caip10Link } from '@ceramicnetwork/stream-caip10-link';
-import { TileDocument } from '@ceramicnetwork/stream-tile';
 import WalletLink from "walletlink";
 import { Alert, Button, Col, Menu, Row } from "antd";
 import "antd/dist/antd.css";
@@ -128,55 +126,6 @@ function App(props) {
   const mainnetProvider = scaffoldEthProvider && scaffoldEthProvider._network ? scaffoldEthProvider : mainnetInfura;
   const [injectedProvider, setInjectedProvider] = useState();
   const [address, setAddress] = useState();
-
-  const { basicProfile, cryptoAccounts } = useStoreState((state) => state.user);
-  const { setBasicProfile, setCryptoAccounts } = useStoreActions(actions => actions.user);
-  const votes = useStoreState((state) => state.vote.votes);
-  const addVote = useStoreActions(actions => actions.vote.addVote);
-  console.log({ basicProfile, votes, cryptoAccounts })
-
-  const testCeramic = async () => {
-    const { idx, ceramic, schemasCommitId } = await makeCeramicClient(address)
-    const [bp, ca, existingVotes] = await Promise.all([
-      await idx.get('basicProfile'),
-      await idx.get('cryptoAccounts'),
-      await idx.get('votes'),
-    ]);
-    console.log({ existingVotes })
-    setBasicProfile(bp)
-    setCryptoAccounts(ca)
-
-    if (ceramic?.did?.id) {
-      const ballotDoc = await TileDocument.create(ceramic,
-        [{ address: "0x14bb6d4d3C70207fc205D9D510790Ca6d854fe44", voteCount: 1 }],
-        {
-          controllers: [ceramic.did.id],
-          family: 'vote',
-          schema: schemasCommitId.vote
-        },
-      );
-      await ballotDoc.makeReadOnly();
-
-      const achStatus = await ballotDoc.requestAnchor();
-      const ballotCommitId = ballotDoc.commitId.toUrl();
-
-      const previousVotes = await idx.get('votes', ceramic.did.id) || {};
-
-      await idx.merge('basicProfile', { description: 'hi from qd' })
-      await idx.set('votes', [{ id: ballotDoc.id.toUrl(), name: 'Election name here' }, ...Object.values(previousVotes)])
-
-      // const loadedDoc = await TileDocument.load(ceramic, "ceramic://k3y52l7qbv1frykoouv0bh4d3c509jnqdc4digho0ofh5s886ukf06ev06yt6kfls")
-      // console.log('before update')
-      // console.log('doc 2',loadedDoc.content);
-
-      // await loadedDoc.update([])
-      // addVote(ballotDoc.id.toString());
-      // const afterUpdateDoc = await TileDocument.load(ceramic, loadedDoc.id)
-      // console.log('after update', afterUpdateDoc.content)
-      // const afterUpdateDocOG = await TileDocument.load(ceramic, "ceramic://k3y52l7qbv1frykoouv0bh4d3c509jnqdc4digho0ofh5s886ukf06ev06yt6kfls")
-      // console.log('after update OG', afterUpdateDocOG.content)
-    }
-  }
 
   const logoutOfWeb3Modal = async () => {
     await web3Modal.clearCachedProvider();
@@ -528,8 +477,6 @@ function App(props) {
         />
         {faucetHint}
       </div>
-
-      <button onClick={testCeramic}>Test</button>
 
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
       <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
