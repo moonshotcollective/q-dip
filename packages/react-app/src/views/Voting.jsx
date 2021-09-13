@@ -5,6 +5,7 @@ import { Button, Divider, Table, Space } from "antd";
 import { fromWei, toWei, toBN } from "web3-utils";
 import { TileDocument } from "@ceramicnetwork/stream-tile";
 import { useStoreActions, useStoreState } from "easy-peasy";
+import { Caip10Link } from '@ceramicnetwork/stream-caip10-link';
 import { Address, PayButton } from "../components";
 import { makeCeramicClient } from "../helpers";
 import toast, { Toaster } from "react-hot-toast";
@@ -268,23 +269,26 @@ export default function Voting({
       address: election.candidates[i],
       voteAttribution: voteAttributionCount,
     }));
-
     console.log({ voteAttribution });
+
     const { idx, ceramic, schemasCommitId } = await makeCeramicClient(address);
+    // TODO: display current DID and basic profile and Crypto Accounts infos
     const [bp, ca, existingVotes] = await Promise.all([
       await idx.get("basicProfile"),
       await idx.get("cryptoAccounts"),
       await idx.get("votes"),
     ]);
     // TODO: check if already voted for this election through another address
+    setBasicProfile(bp);
+    setCryptoAccounts(ca);
+
     console.log({ existingVotes });
     const hasAlreadyVotedForElec = Object.values(existingVotes).find(vote => vote.name === election.name);
     if (hasAlreadyVotedForElec) {
       setAlreadyVoted(true);
       toast.error("Already voted for this election");
+      return;
     }
-    setBasicProfile(bp);
-    setCryptoAccounts(ca);
 
     if (ceramic?.did?.id) {
       const ballotDoc = await TileDocument.create(ceramic, voteAttribution, {
@@ -292,9 +296,11 @@ export default function Voting({
         family: "vote",
         schema: schemasCommitId.vote,
       });
-      await ballotDoc.makeReadOnly();
-
+      // https://developers.ceramic.network/learn/glossary/#anchor-commit
+      // https://developers.ceramic.network/learn/glossary/#anchor-service
       const anchorStatus = await ballotDoc.requestAnchor();
+      await ballotDoc.makeReadOnly();
+      Object.freeze(ballotDoc);
 
       const previousVotes = (await idx.get("votes", ceramic.did.id)) || {};
       await idx.set("votes", [{ id: ballotDoc.id.toUrl(), name: election.name }, ...Object.values(previousVotes)]);
@@ -419,6 +425,49 @@ export default function Voting({
     console.log({ payoutInfo });
     const election = await readContracts.Diplomacy.getElectionById(id);
     console.log({ election });
+    const { idx, ceramic, schemasCommitId } = await makeCeramicClient(address);
+    const candidateDids = election.candidates.map(candidateAddress => {
+      const caip10 = await Caip10Link.fromAccount(
+        ceramic,
+        `${address}@eip155:1`,
+      );
+      return caip10.did;
+    });
+
+    const candidatesSealedBallots = [];
+    for (const candidateDid of candidateDids) {
+      const candidateVotes = await idx.get("votes", candidateDid);
+      const foundElectionBallots = Object.values(candidateVotes).find(vote => vote.name === election.name)
+      // load the stream
+      const candidateBallotDoc = await TileDocument.load(ceramic, foundElectionBallots.id);
+      // get the first commitId which immutable
+      const { allCommitIds } = candidateBallotDoc;
+      const sealedVote = allCommitIds[0];
+      // load the first commit
+      const sealedVoteDoc = await TileDocument.load(ceramic, sealedVote);
+      candidatesSealedBallots.push(sealedVoteDoc.content);
+    }
+
+    const totalPayoutPerCandidate = candidatesSealedBallots.reduce((candidatePayout, ballots) => {
+      ballots.forEach(ballot => {
+        candidatePayout[ballot.address]: (
+          parseFloat(candidatePayout[ballot.address])
+          + parseFloat(candidatePayout[ballot.voteAttribution])
+        )
+      })
+      return candidatePayout;
+    }, {})
+
+    const { candidates, payouts } = totalPayoutPerCandidate.reduce((serializedCandidatePayout, [candidate, payoutValue]) => {
+      serializedCandidatePayout.candidates.push(candidate)
+      serializedCandidatePayout.payouts.push(payoutValue)
+      return serializedCandidatePayout;
+    }, {
+      candidates: [],
+      payouts: []
+    })
+
+    console.log({ candidates, payouts })
 
     tx(
       writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
