@@ -4,7 +4,7 @@ import { useEventListener } from "../hooks";
 import { Address } from "../components";
 import { mainnetProvider, blockExplorer } from "../App";
 import { fromWei, toWei, toBN } from "web3-utils";
-import AddressInput from "../components/AddressInput";
+import AddAddress from "../components/AddAddress";
 import {
   Button,
   Divider,
@@ -22,30 +22,20 @@ import {
   Carousel,
   Typography,
   Steps,
+  Col,
+  Row,
 } from "antd";
+import { 
+  LeftOutlined, 
+  DeleteOutlined, 
+  CheckOutlined, 
+  PlusOutlined, 
+  PlusCircleFilled 
+} from "@ant-design/icons";
 
 const CURRENCY = "MATIC";
 
-const Step1 = (props,
-// `{
-//   mainnetProvider,
-//   // electionCandidates,
-//   // electionName,
-//   // electionFunds,
-//   // electionFundAmount,
-//   // electionVotes,
-//   // electionTokenAdr,
-//   // electionTokenName,
-// }`
-) => {
-  console.log({props})
-  const [electionName, setElectionName] = useState("");
-  const [electionFunds, setElectionFunds] = useState(CURRENCY);
-  const [electionFundAmount, setElectionFundAmount] = useState("");
-  const [electionVotes, setElectionVotes] = useState("");
-  const [electionTokenAdr, setElectionTokenAdr] = useState("0x0000000000000000000000000000000000000000");
-  const [electionTokenName, setElectionTokenName] = useState("");
-
+const Step1 = ({ mainnetProvider, election }) => {
   const selectFunds = (
     <Select
       defaultValue={CURRENCY}
@@ -53,8 +43,8 @@ const Step1 = (props,
       onChange={value => {
         // GTC-MATIC (PoS) TOKEN ADDRESS!
         const adr = "0xdb95f9188479575F3F718a245EcA1B3BF74567EC";
-        setElectionTokenAdr(adr);
-        setElectionFunds(value);
+        election.tokenAdr = adr;
+        election.fundAmount = value;
       }}
     >
       <Option value={CURRENCY}>{CURRENCY}</Option>
@@ -64,7 +54,13 @@ const Step1 = (props,
   );
   return (
     <>
-      <Form layout="vertical" name="createForm" autoComplete="off" initialValues={{ remember: false }}>
+      <Form
+        layout="vertical"
+        style={{ margin: "2em 12em" }}
+        name="createForm"
+        autoComplete="off"
+        initialValues={{ remember: true }}
+      >
         <Form.Item
           name="elec_name"
           label="Election Name"
@@ -78,7 +74,7 @@ const Step1 = (props,
               width: "100%",
             }}
             onChange={e => {
-              e.target.value ? setElectionName(e.target.value) : null;
+              election.name = e.target.value ? e.target.value : "";
             }}
           />
         </Form.Item>
@@ -100,11 +96,10 @@ const Step1 = (props,
             }}
             onChange={e => {
               if (!isNaN(Number(e.target.value))) {
-                let funds;
-                if (electionFunds === CURRENCY) {
-                  funds = toWei(Number(e.target.value).toFixed(18).toString());
+                if (election.funds === CURRENCY) {
+                  election.fundAmount = toWei(Number(e.target.value).toFixed(18).toString());
                 } else {
-                  funds = toWei(Number(e.target.value).toFixed(18).toString()); //*10^18 for Tokens?? -> toWei does this, but hacky
+                  election.fundAmount = toWei(Number(e.target.value).toFixed(18).toString()); //*10^18 for Tokens?? -> toWei does this, but hacky
                 }
               }
             }}
@@ -127,7 +122,7 @@ const Step1 = (props,
             }}
             min="1"
             onChange={value => {
-              // setNewElecAllocatedVotes(value);
+              election.votes = value; 
             }}
           />
         </Form.Item>
@@ -138,46 +133,46 @@ const Step1 = (props,
 
 const Step2 = ({
   mainnetProvider,
-  electionCandidates,
-  electionName,
-  electionFunds,
-  electionFundAmount,
-  electionVotes,
-  electionTokenAdr,
-  electionTokenName,
+  election,
 }) => {
   const [toAddress, setToAddress] = useState("");
   return (
     <>
-      <Form layout="vertical" name="createForm" autoComplete="off" initialValues={{ remember: false }}>
+      <Form
+        style={{ margin: "2em 12em" }}
+        layout="vertical"
+        name="createForm"
+        autoComplete="off"
+        initialValues={{ remember: false }}
+      >
         <Form.Item
           name="candidates"
-          label="Candidates"
           rules={[
             {
               validator: (_, value) =>
-                electionCandidates.length != 0
+                election.candidates.length != 0
                   ? Promise.resolve()
                   : Promise.reject(new Error("Should add atleast one ENS address")),
             },
           ]}
         >
-          <Space>
-            <AddressInput
+          <Space style={{ margin: "1em 0em" }}>
+            <AddAddress
               ensProvider={mainnetProvider}
               placeholder="Enter ENS name"
               value={toAddress}
               onChange={setToAddress}
             />
             <Button
-              type="default"
+              type="link"
+              icon={<PlusCircleFilled />}
               size="large"
               onClick={() => {
-                electionCandidates.push(toAddress);
+                election.candidates.push(toAddress);
                 setToAddress("");
               }}
             >
-              + Add
+              Add
             </Button>
           </Space>
 
@@ -185,16 +180,17 @@ const Step2 = ({
             style={{ overflow: "auto", height: "200px" }}
             itemLayout="horizontal"
             bordered
-            dataSource={electionCandidates}
+            dataSource={election.candidates}
             renderItem={(item, index) => (
               <List.Item>
                 <Address address={item} ensProvider={mainnetProvider} fontSize="14pt" />
                 <Button
                   type="link"
+                  icon={<DeleteOutlined />}
                   onClick={async () => {
-                    const updatedAddresses = [...addresses];
+                    const updatedAddresses = election.candidates;
                     updatedAddresses.splice(index, 1);
-                    setElectionCandidates(updatedAddresses);
+                    election.candidates.push(updatedAddresses);
                   }}
                   size="medium"
                   style={{ marginLeft: "200px" }}
@@ -210,31 +206,23 @@ const Step2 = ({
   );
 };
 
-const Step3 = ({
-  mainnetProvider,
-  electionCandidates,
-  electionName,
-  electionFunds,
-  electionFundAmount,
-  electionVotes,
-  electionTokenAdr,
-  electionTokenName,
-}) => {
+const Step3 = ({ mainnetProvider, election }) => {
   return (
     <>
-      <Descriptions title="Election Details" column={1} size="small" bordered>
-        <Descriptions.Item label="Name">{electionName}</Descriptions.Item>
+      <Descriptions style={{ margin: "2em 12em" }} column={1} size="small">
+        <Descriptions.Item label="Name">{election.name}</Descriptions.Item>
         <Descriptions.Item label="Allocated Funds">
-          {/* {fromWei(newElecAllocatedFunds ? newElecAllocatedFunds.toString() : "0") + " " + fundsType} */}
+          {/* {election.funds} */}
+          {fromWei(election.fundAmount ? election.fundAmount.toString() : "0") + " " + election.funds}
         </Descriptions.Item>
         {/* <Descriptions.Item label="Allocated Funds">{newElecAllocatedFunds}</Descriptions.Item> */}
-        <Descriptions.Item label="Votes/Candidate">{10000}</Descriptions.Item>
+        <Descriptions.Item label="Votes/Candidate">{election.votes}</Descriptions.Item>
         <Descriptions.Item label="Candidates">
           <List
-            style={{ overflow: "auto", height: "100px" }}
+            style={{ overflow: "auto", height: "10em", width: "32em" }}
             itemLayout="horizontal"
             bordered
-            dataSource={electionCandidates}
+            dataSource={election.candidates}
             renderItem={(adr, index) => (
               <List.Item>
                 <Address address={adr} ensProvider={mainnetProvider} fontSize="14pt" />
@@ -243,13 +231,6 @@ const Step3 = ({
           />
         </Descriptions.Item>
       </Descriptions>
-      <Form>
-        <Form.Item wrapperCol={{ offset: 4, span: 16 }}>
-          <Button type="primary" size="large" htmlType="submit">
-            Confirm
-          </Button>
-        </Form.Item>
-      </Form>
     </>
   );
 };
@@ -268,62 +249,30 @@ export default function Create({
 }) {
   const [current, setCurrent] = useState(0);
 
-  const [electionCandidates, setElectionCandidates] = useState([]);
-  const [electionName, setElectionName] = useState("");
-  const [electionFunds, setElectionFunds] = useState(CURRENCY);
-  const [electionFundAmount, setElectionFundAmount] = useState("");
-  const [electionVotes, setElectionVotes] = useState("");
-  const [electionTokenAdr, setElectionTokenAdr] = useState("0x0000000000000000000000000000000000000000");
-  const [electionTokenName, setElectionTokenName] = useState("");
+  const [newElection, setNewElection] = useState({
+    name: "",
+    funds: "",
+    fundAmount: "",
+    votes: 1,
+    tokenAdr: "0x0000000000000000000000000000000000000000",
+    tokenName: "",
+    candidates: [],
+  });
 
   const { Step } = Steps;
 
   const steps = [
     {
-      title: "Election Numbers",
-      content: (
-        <Step1
-          mainnetProvider={mainnetProvider}
-          
-          // electionCandidates={electionCandidates}
-          // electionName={electionName}
-          // electionFunds={electionFunds}
-          // electionFundAmount={electionFundAmount}
-          // electionVotes={electionVotes}
-          // electionTokenAdr={electionTokenAdr}
-          // electionTokenName={electionTokenName}
-        />
-      ),
+      title: "Election Details",
+      content: <Step1 mainnetProvider={mainnetProvider} election={newElection} />,
     },
     {
       title: "Add Candidates",
-      content: (
-        <Step2
-          mainnetProvider={mainnetProvider}
-          electionCandidates={electionCandidates}
-          electionName={electionName}
-          electionFunds={electionFunds}
-          electionFundAmount={electionFundAmount}
-          electionVotes={electionVotes}
-          electionTokenAdr={electionTokenAdr}
-          electionTokenName={electionTokenName}
-        />
-      ),
+      content: <Step2 mainnetProvider={mainnetProvider} election={newElection} />,
     },
     {
       title: "Review & Confirm",
-      content: (
-        <Step3
-          mainnetProvider={mainnetProvider}
-          electionCandidates={electionCandidates}
-          electionName={electionName}
-          electionFunds={electionFunds}
-          electionFundAmount={electionFundAmount}
-          electionVotes={electionVotes}
-          electionTokenAdr={electionTokenAdr}
-          electionTokenName={electionTokenName}
-        />
-      ),
+      content: <Step3 mainnetProvider={mainnetProvider} election={newElection} />,
     },
   ];
 
@@ -335,48 +284,86 @@ export default function Create({
     setCurrent(current - 1);
   };
 
+  const [isConfirmingElection, setIsConfirmingElection] = useState(false);
+  const [isCreatedElection, setIsCreatedElection] = useState(false);
+  
+  const confirmElection = async () => {
+    setIsConfirmingElection(true);
+    // Create a new election
+    const result = tx(
+      writeContracts.Diplomacy.newElection(
+        newElection.name,
+        newElection.fundAmount,
+        // fundsType,
+        newElection.tokenAdr,
+        newElection.votes,
+        newElection.candidates,
+      ),
+      update => {
+        console.log("📡 Transaction Update:", update);
+        if (update.code == -32603 || update.code == 4001) {
+          setIsConfirmingElection(false);
+          return;
+        }
+        if (update && (update.status === "confirmed" || update.status === 1)) {
+            console.log(" 🍾 Transaction " + update.hash + " finished!");
+            setIsConfirmingElection(false);
+            // update the view!
+            setIsCreatedElection(true);
+        }
+        if (update.status === "error") {
+          setIsConfirmingElection(false);
+        }
+      },
+    );
+  };
+
   return (
     <>
       <div
         className="create-view"
         style={{ border: "1px solid #cccccc", padding: 16, width: 1000, margin: "auto", marginTop: 64 }}
       >
-        <PageHeader
-          ghost={false}
-          title="Create New Election"
-          onBack={() => window.history.back()}
-          extra={
-            [
-              // <Button type="primary" size="large" shape="round" style={{ margin: 4 }} onClick={() => createNewElection()}>
-              //   + Create Election
-              // </Button>,
-            ]
-          }
-        />
+        <PageHeader ghost={false} title="Create New Election" onBack={() => window.history.back()} />
         <Divider />
-
-        <Steps current={current}>
+        <Steps current={current} style={{ padding: "12px 72px" }}>
           {steps.map(item => (
             <Step key={item.title} title={item.title} />
           ))}
         </Steps>
         <div className="steps-content">{steps[current].content}</div>
+        <Divider />
         <div className="steps-action">
-          {current > 0 && (
-            <Button style={{ margin: "0 8px" }} onClick={() => prev()}>
-              Previous
-            </Button>
-          )}
-          {current < steps.length - 1 && (
-            <Button type="primary" onClick={() => next()}>
-              Next
-            </Button>
-          )}
-          {current === steps.length - 1 && (
-            <Button type="primary" onClick={() => message.success("Processing complete!")}>
-              Done
-            </Button>
-          )}
+          <Row>
+            <Col span={4}>
+              {current > 0 && (
+                <Button type="link" icon={<LeftOutlined />} onClick={() => prev()}>
+                  Back
+                </Button>
+              )}
+            </Col>
+
+            <Col span={8} offset={4}>
+              {current < steps.length - 1 && (
+                <Button type="default" size="large" shape="round" onClick={() => next()}>
+                  Continue
+                </Button>
+              )}
+
+              {current === steps.length - 1 && !isCreatedElection && (
+                <Button 
+                  icon={<CheckOutlined />} 
+                  type="primary" 
+                  size="large" 
+                  shape="round" 
+                  loading={ isConfirmingElection }
+                  onClick={ confirmElection }
+                >
+                  Confirm Election
+                </Button>
+              )}
+            </Col>
+          </Row>
         </div>
       </div>
     </>

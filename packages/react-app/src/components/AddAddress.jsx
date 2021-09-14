@@ -32,7 +32,7 @@ import Blockie from "./Blockie";
                           or onChange={address => { setToAddress(address);}}
 */
 
-export default function AddressInput(props) {
+export default function AddAddress(props) {
   const [value, setValue] = useState(props.value);
   const [scan, setScan] = useState(false);
 

@@ -20,6 +20,7 @@ import {
   Carousel,
   Typography,
 } from "antd";
+import { PlusOutlined, } from "@ant-design/icons";
 
 var Map = require("collections/map");
 
@@ -170,7 +171,8 @@ export default function Elections({
   const onBallotCast = async (msg, electionsMap) => {
     console.log("onBallotCast ", msg);
     let election = electionsMap.get(msg.electionId.toNumber());
-    election.n_voted = election.n_voted + 1;
+    const electionVoted = await readContracts.Diplomacy.getElectionVoted(msg.electionId.toNumber())
+    election.n_voted = electionVoted;//election.n_voted + 1;
     electionsMap.set(msg.electionId.toNumber(), election);
   }
 
@@ -178,10 +180,11 @@ export default function Elections({
     console.log("onElectionCreated ", msg);
     const election = await readContracts.Diplomacy.getElectionById(msg.electionId.toNumber());
     const electionVoted = await readContracts.Diplomacy.getElectionVoted(msg.electionId.toNumber());
-    let electionEntry = {};
-    electionEntry.name = election.name;
-    electionEntry.n_voted = electionVoted.toNumber();
-    electionsMap.set(msg, electionEntry);
+    let initElectionEntry = {
+      name: election.name, 
+      n_voted: electionVoted.toNumber()
+    };
+    electionsMap.set(msg, initElectionEntry);
   }
 
   function voteElection(index) {
@@ -202,8 +205,8 @@ export default function Elections({
           ghost={false}
           title="Elections"
           extra={[
-            <Button type="primary" size="large" shape="round" style={{ margin: 4 }} onClick={createElection}>
-              + Create Election
+            <Button icon={<PlusOutlined />}type="primary" size="large" shape="round" style={{ margin: 4 }} onClick={createElection}>
+              Create Election
             </Button>,
           ]}
         />
