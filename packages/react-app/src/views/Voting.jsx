@@ -18,7 +18,7 @@ export default function Voting({
   yourLocalBalance,
 }) {
   let { id } = useParams();
-  const [tableDataSrc, setTableDataSrc] = useState([]);
+  const [votingData, setVotingData] = useState([]);
   const [token, setToken] = useState("MATIC");
   const [election, setElection] = useState();
   const [elecName, setElecName] = useState("");
@@ -105,8 +105,8 @@ export default function Voting({
 
   function minusVote(record, idx) {
     setErrorMsg("");
-    if (tableDataSrc[record.key].n_votes > 0) {
-      tableDataSrc[record.key].n_votes = tableDataSrc[record.key].n_votes - 1;
+    if (votingData[record.key].n_votes > 0) {
+      votingData[record.key].n_votes = votingData[record.key].n_votes - 1;
       setRemainTokens(remainTokens + 1);
     }
   }
@@ -114,7 +114,7 @@ export default function Voting({
   function plusVote(record, idx) {
     setErrorMsg("");
     if (remainTokens > 0) {
-      tableDataSrc[record.key].n_votes = tableDataSrc[record.key].n_votes + 1;
+      votingData[record.key].n_votes = votingData[record.key].n_votes + 1;
       setRemainTokens(remainTokens - 1);
     }
   }
@@ -249,7 +249,7 @@ export default function Voting({
     });
 
     console.log("updateView called");
-    setTableDataSrc(data);
+    setVotingData(data);
   };
 
   const castVotes = async () => {
@@ -264,8 +264,8 @@ export default function Voting({
     const election = await readContracts.Diplomacy.getElectionById(id);
     const adrs = election.candidates; // hmm...
     const votes = [];
-    for (let i = 0; i < tableDataSrc.length; i++) {
-      votes.push(Math.sqrt(tableDataSrc[i].n_votes).toString());
+    for (let i = 0; i < votingData.length; i++) {
+      votes.push(Math.sqrt(votingData[i].n_votes).toString());
     }
 
     const result = tx(writeContracts.Diplomacy.castBallot(id, adrs, votes), update => {
@@ -470,10 +470,10 @@ export default function Voting({
           </Space>
           <Divider />
           {isElectionActive && canVoteElection && !alreadyVoted && (
-            <Table dataSource={tableDataSrc} columns={voting_columns} pagination={{ pageSize: 5 }} />
+            <Table dataSource={votingData} columns={voting_columns} pagination={{ pageSize: 5 }} />
           )}
           {(!canVoteElection || alreadyVoted || !isElectionActive) && (
-            <Table dataSource={tableDataSrc} columns={voted_columns} pagination={{ pageSize: 5 }} />
+            <Table dataSource={votingData} columns={voted_columns} pagination={{ pageSize: 5 }} />
           )}
           <Divider />
           {alreadyVoted && <Text>Votes Received! Thanks!</Text>}

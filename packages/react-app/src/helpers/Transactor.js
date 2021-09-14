@@ -9,7 +9,7 @@ const { ethers } = require("ethers");
 // https://docs.blocknative.com/notify
 const callbacks = {};
 
-const DEBUG = true;
+const DEBUG = false;
 
 export default function Transactor(providerOrSigner, gasPrice, etherscan) {
   if (typeof providerOrSigner !== "undefined") {
@@ -101,9 +101,8 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
           if (callback) {
             const txResult = await tx;
             const listeningInterval = setInterval(async () => {
-              console.log("CHECK IN ON THE TX", txResult, provider);
+              //   console.log("CHECK IN ON THE TX", txResult, provider);
               const currentTransactionReceipt = await provider.getTransactionReceipt(txResult.hash);
-              console.log({ currentTransactionReceipt });
               if (currentTransactionReceipt && currentTransactionReceipt.confirmations) {
                 callback({ ...txResult, ...currentTransactionReceipt });
                 clearInterval(listeningInterval);
@@ -134,7 +133,7 @@ export default function Transactor(providerOrSigner, gasPrice, etherscan) {
           message = e.message;
         }
 
-        console.log("Attempt to clean up:", message);
+        if (DEBUG) console.log("Attempt to clean up:", message);
         try {
           let obj = JSON.parse(message);
           if (obj && obj.body) {

@@ -1589,7 +1589,7 @@
       "chainId": "31337",
       "contracts": {
         "Diplomacy": {
-          "address": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+          "address": "0x59b670e9fA9D0A427751Af201D676719a970857b",
           "abi": [
             {
               "inputs": [],
@@ -1767,6 +1767,10 @@
               "type": "event"
             },
             {
+              "stateMutability": "payable",
+              "type": "fallback"
+            },
+            {
               "inputs": [],
               "name": "DEFAULT_ADMIN_ROLE",
               "outputs": [
@@ -1785,26 +1789,10 @@
                   "internalType": "uint256",
                   "name": "electionId",
                   "type": "uint256"
-                },
-                {
-                  "internalType": "address[]",
-                  "name": "_adrs",
-                  "type": "address[]"
-                },
-                {
-                  "internalType": "uint256[]",
-                  "name": "_pay",
-                  "type": "uint256[]"
                 }
               ],
-              "name": "_gtcPayout",
-              "outputs": [
-                {
-                  "internalType": "bool",
-                  "name": "",
-                  "type": "bool"
-                }
-              ],
+              "name": "approveToken",
+              "outputs": [],
               "stateMutability": "nonpayable",
               "type": "function"
             },
@@ -1881,9 +1869,9 @@
                   "type": "bool"
                 },
                 {
-                  "internalType": "uint256",
+                  "internalType": "uint32",
                   "name": "createdAt",
-                  "type": "uint256"
+                  "type": "uint32"
                 },
                 {
                   "internalType": "uint256",
@@ -1891,14 +1879,14 @@
                   "type": "uint256"
                 },
                 {
-                  "internalType": "string",
-                  "name": "fundingType",
-                  "type": "string"
+                  "internalType": "address",
+                  "name": "token",
+                  "type": "address"
                 },
                 {
-                  "internalType": "uint256",
+                  "internalType": "int8",
                   "name": "votes",
-                  "type": "uint256"
+                  "type": "int8"
                 },
                 {
                   "internalType": "address",
@@ -1958,14 +1946,14 @@
                   "type": "uint256"
                 },
                 {
-                  "internalType": "string",
-                  "name": "fundingType",
-                  "type": "string"
+                  "internalType": "address",
+                  "name": "token",
+                  "type": "address"
                 },
                 {
-                  "internalType": "uint256",
+                  "internalType": "int8",
                   "name": "votes",
-                  "type": "uint256"
+                  "type": "int8"
                 },
                 {
                   "internalType": "address",
@@ -1981,30 +1969,6 @@
                   "internalType": "bool",
                   "name": "paid",
                   "type": "bool"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
-              "inputs": [
-                {
-                  "internalType": "uint256",
-                  "name": "electionId",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "address",
-                  "name": "_adr",
-                  "type": "address"
-                }
-              ],
-              "name": "getElectionResults",
-              "outputs": [
-                {
-                  "internalType": "int256",
-                  "name": "",
-                  "type": "int256"
                 }
               ],
               "stateMutability": "view",
@@ -2199,14 +2163,14 @@
                   "type": "uint256"
                 },
                 {
-                  "internalType": "string",
-                  "name": "_type",
-                  "type": "string"
+                  "internalType": "address",
+                  "name": "_token",
+                  "type": "address"
                 },
                 {
-                  "internalType": "uint256",
+                  "internalType": "int8",
                   "name": "_votes",
-                  "type": "uint256"
+                  "type": "int8"
                 },
                 {
                   "internalType": "address[]",
@@ -2320,6 +2284,35 @@
             {
               "inputs": [
                 {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "name": "scores",
+              "outputs": [
+                {
+                  "internalType": "string",
+                  "name": "",
+                  "type": "string"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
                   "internalType": "bytes4",
                   "name": "interfaceId",
                   "type": "bytes4"
@@ -2337,19 +2330,6 @@
               "type": "function"
             },
             {
-              "inputs": [],
-              "name": "token",
-              "outputs": [
-                {
-                  "internalType": "address",
-                  "name": "",
-                  "type": "address"
-                }
-              ],
-              "stateMutability": "view",
-              "type": "function"
-            },
-            {
               "inputs": [
                 {
                   "internalType": "address",
@@ -2361,6 +2341,34 @@
               "outputs": [],
               "stateMutability": "nonpayable",
               "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "name": "voted",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
             }
           ]
         }

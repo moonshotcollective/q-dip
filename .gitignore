@@ -112,3 +112,4 @@ artifacts/
 # Cache 
 cache/
 packages/react-app/build/
+packages/hardhat/deployments/localhost/

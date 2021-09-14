@@ -195,8 +195,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         uint256 electionId,
         address[] memory _adrs,
         string[] memory _scores // submitted sqrt of votes
-    ) public onlyElectionCandidate(electionId) 
-        validBallot(electionId, _adrs, _scores) {
+    ) public {
         
         for (uint256 i = 0; i < _adrs.length; i++) {
             scores[electionId][_adrs[i]].push(_scores[i]); 
