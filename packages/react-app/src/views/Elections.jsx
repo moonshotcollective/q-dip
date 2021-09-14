@@ -33,7 +33,9 @@ export default function Elections({
   readContracts,
   writeContracts,
 }) {
+
   const [electionsMap, setElectionsMap] = useState();
+
   const columns = [
     {
       title: "Name",
@@ -69,6 +71,7 @@ export default function Elections({
   ];
 
   const route_history = useHistory();
+
   function viewElection(record) {
     route_history.push("/voting/" + record.key);
   }
@@ -81,31 +84,34 @@ export default function Elections({
     }
   }, [readContracts]);
 
-  async function init() {
+  const init = async () => {
+    
     const electionsMap = new Map();
-    console.log({ electionsMap });
+    
     const numElections = await readContracts.Diplomacy.numElections();
-    console.log({ numElections });
     for (let i = 0; i < numElections; i++) {
-      const electionContract = await readContracts.Diplomacy.getElectionById(i);
+      const election = await readContracts.Diplomacy.getElectionById(i);
+      const electionVoted = await readContracts.Diplomacy.getElectionVoted(i);
+      console.log({ electionVoted })
       let electionEntry = {};
-      electionEntry.name = electionContract.name;
-      electionEntry.n_voted = 0;
+      electionEntry.name = election.name;
+      electionEntry.n_voted = electionVoted.toNumber();
       electionsMap.set(i, electionEntry);
     }
+
     setElectionsMap(electionsMap);
 
-    let contractName = "Diplomacy";
+    addEventListener("Diplomacy", "BallotCast", onBallotCast, electionsMap);
+    addEventListener("Diplomacy", "ElectionCreated", onElectionCreated, electionsMap);
 
-    addEventListener(contractName, "BallotCast", onBallotCast, electionsMap);
   }
+
 
   const addEventListener = async (contractName, eventName, callback, electionsMap) => {
     await readContracts[contractName].removeListener(eventName);
 
     readContracts[contractName].on(eventName, (...args) => {
       let msg = args.pop().args;
-      console.log(electionsMap);
       callback(msg, electionsMap);
     });
   };
@@ -115,6 +121,16 @@ export default function Elections({
     let election = electionsMap.get(msg.electionId.toNumber());
     election.n_voted = election.n_voted + 1;
     electionsMap.set(msg.electionId.toNumber(), election);
+  }
+
+  async function onElectionCreated(msg, electionsMap) {
+    console.log("onElectionCreated ", msg);
+    const election = await readContracts.Diplomacy.getElectionById(msg.electionId.toNumber());
+    const electionVoted = await readContracts.Diplomacy.getElectionVoted(msg.electionId.toNumber());
+    let electionEntry = {};
+    electionEntry.name = election.name;
+    electionEntry.n_voted = electionVoted.toNumber();
+    electionsMap.set(msg, electionEntry);
   }
 
   function voteElection(record) {
