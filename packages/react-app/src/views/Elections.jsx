@@ -105,6 +105,10 @@ export default function Elections({
     route_history.push("/voting/" + record.key);
   }
 
+  function createElection() {
+    route_history.push("/create");
+  }
+
   useEffect(() => {
     if (readContracts) {
       if (readContracts.Diplomacy) {
@@ -198,7 +202,7 @@ export default function Elections({
           ghost={false}
           title="Elections"
           extra={[
-            <Button type="primary" size="large" shape="round" style={{ margin: 4 }} onClick={() => createNewElection()}>
+            <Button type="primary" size="large" shape="round" style={{ margin: 4 }} onClick={createElection}>
               + Create Election
             </Button>,
           ]}

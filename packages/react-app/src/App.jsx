@@ -20,8 +20,8 @@ import {
   useOnBlock,
   useUserSigner,
 } from "./hooks";
-// import Hints from "./Hints";
-import { Voting, Elections, Hints, Subgraph } from "./views";
+import { Voting, Elections, Create} from "./views";
+// import Create from "./views/Create"
 
 const { ethers } = require("ethers");
 /*
@@ -381,13 +381,39 @@ function App(props) {
       {networkDisplay}
       <BrowserRouter>
         <Switch>
-          <Route exact path="/contract">
+          <Route path="/contract">
             <Contract
               name="Diplomacy"
               signer={userSigner}
               provider={localProvider}
               address={address}
               blockExplorer={blockExplorer}
+            />
+          </Route> 
+          <Route exact path="/">
+            <Elections
+              address={address}
+              userSigner={userSigner}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+            />
+          </Route>
+          <Route path="/create">
+            <Create
+              address={address}
+              userSigner={userSigner}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
             />
           </Route>
           <Route path="/voting/:id">
@@ -403,32 +429,6 @@ function App(props) {
               readContracts={readContracts}
             />
           </Route>
-          <Route path="/">
-            <Elections
-              address={address}
-              userSigner={userSigner}
-              mainnetProvider={mainnetProvider}
-              localProvider={localProvider}
-              yourLocalBalance={yourLocalBalance}
-              price={price}
-              tx={tx}
-              writeContracts={writeContracts}
-              readContracts={readContracts}
-            />
-          </Route>
-          {/* <Route path="/create">
-            <CreateElection
-              address={address}
-              userSigner={userSigner}
-              mainnetProvider={mainnetProvider}
-              localProvider={localProvider}
-              yourLocalBalance={yourLocalBalance}
-              price={price}
-              tx={tx}
-              writeContracts={writeContracts}
-              readContracts={readContracts}
-            />
-          </Route> */}
         </Switch>
       </BrowserRouter>
 
