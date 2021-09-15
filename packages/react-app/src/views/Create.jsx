@@ -213,21 +213,19 @@ const Step2 = ({
 const Step3 = ({ mainnetProvider, election }) => {
   return (
     <>
-      <Descriptions bordered style={{ margin: "2em 12em" }} column={1} size="small">
+      <Descriptions bordered style={{ margin: "2em 10em" }} column={1} size="small">
         <Descriptions.Item label="Election Name:">{election.name}</Descriptions.Item>
         <Descriptions.Item label="Allocated Funds:">
-          {/* {election.funds} */}
           {fromWei(election.fundAmount ? election.fundAmount.toString() : "0") + " " + election.funds}
         </Descriptions.Item>
-        {/* <Descriptions.Item label="Allocated Funds">{newElecAllocatedFunds}</Descriptions.Item> */}
         <Descriptions.Item label="Delegated Votes:">{election.votes}</Descriptions.Item>
         <Descriptions.Item label="Candidates:">
         Count: {election.candidates.length}
         <br />
           <List
-            style={{ overflow: "auto", height: "10em", width: "32em" }}
+            style={{ overflow: "auto", height: "10em", width: "36em" }}
             itemLayout="horizontal"
-            // bordered
+            bordered
             dataSource={election.candidates}
             renderItem={(adr, index) => (
               <List.Item>
@@ -332,12 +330,12 @@ export default function Create({
       >
         <PageHeader ghost={false} title="Create New Election" onBack={() => window.history.back()} />
         <Divider />
-        <Steps current={current} style={{ padding: "12px 72px" }}>
+        <Steps current={current} style={{ padding: "10px 72px 12px" }}>
           {steps.map(item => (
             <Step key={item.title} title={item.title} />
           ))}
         </Steps>
-        <div className="steps-content">{steps[current].content}</div>
+        <div className="steps-content" style={{height: "300px"}}>{steps[current].content} </div>
         <Divider />
         <div className="steps-action">
           <Row>

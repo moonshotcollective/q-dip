@@ -57,7 +57,7 @@ export default function Account({
       modalButtons.push(
         <Button
           key="logoutbutton"
-          style={{ verticalAlign: "top", marginLeft: 8, marginTop: 4 }}
+          style={{ verticalAlign: "middle", marginLeft: 8, marginTop: 4 }}
           shape="round"
           size="large"
           onClick={logoutOfWeb3Modal}
@@ -69,7 +69,7 @@ export default function Account({
       modalButtons.push(
         <Button
           key="loginbutton"
-          style={{ verticalAlign: "top", marginLeft: 8, marginTop: 4 }}
+          style={{ verticalAlign: "middle", marginLeft: 8, marginTop: 4 }}
           shape="round"
           size="large"
           /* type={minimized ? "default" : "primary"}     too many people just defaulting to MM and having a bad time */
@@ -92,15 +92,15 @@ export default function Account({
       ) : (
         "Connecting..."
       )}
-      <Balance address={address} provider={localProvider} price={price} />
-      <Wallet
+      {/* <Balance address={address} provider={localProvider} price={price} /> */}
+      {/* <Wallet
         address={address}
         provider={localProvider}
         signer={userSigner}
         ensProvider={mainnetProvider}
         price={price}
         color={currentTheme === "light" ? "#1890ff" : "#2caad9"}
-      />
+      /> */}
     </span>
   );
 
