@@ -126,11 +126,12 @@ export default function AddAddress(props) {
         autoFocus={props.autoFocus}
         placeholder={props.placeholder ? props.placeholder : "address"}
         prefix={<Blockie address={currentValue} size={8} scale={3} />}
-        value={ens || currentValue}
+        value={currentValue}
         style={{ width: "34em" }}
         onChange={e => {
           updateAddress(e.target.value);
         }}
+        allowClear={true}
       />
     </div>
   );

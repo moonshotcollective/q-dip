@@ -3,6 +3,7 @@ import React from "react";
 import Blockies from "react-blockies";
 import { useThemeSwitcher } from "react-css-theme-switcher";
 import { useLookupAddress } from "../hooks";
+import { CopyOutlined } from "@ant-design/icons";
 
 // changed value={address} to address={address}
 
@@ -91,7 +92,7 @@ export default function Address(props) {
     );
   } else {
     text = (
-      <Text copyable={{ text: address }}>
+      <Text copyable={{ text: address , tooltips:true, icon: <CopyOutlined style={{fontSize: "0.7em"}}/>}}>
         <a
           style={{ color: currentTheme === "light" ? "#222222" : "#ddd" }}
           target="_blank"
@@ -107,9 +108,9 @@ export default function Address(props) {
   return (
     <span>
       <span style={{ verticalAlign: "middle" }}>
-        <Blockies seed={address.toLowerCase()} size={8} scale={props.fontSize ? props.fontSize / 9 : 4} />
+        <Blockies seed={address.toLowerCase()} size={8} scale={props.fontSize ? props.fontSize / 12 : 4} />
       </span>
-      <span style={{ verticalAlign: "middle", paddingLeft: 5, fontSize: props.fontSize ? props.fontSize : 28 }}>
+      <span style={{ verticalAlign: "middle", paddingLeft: 5, fontSize: props.fontSize ? props.fontSize : 16 }}>
         {text}
       </span>
     </span>

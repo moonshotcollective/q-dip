@@ -52,6 +52,8 @@ const Step1 = ({ mainnetProvider, election }) => {
       <Option value="GTC">GTC</Option>
     </Select>
   );
+
+
   return (
     <>
       <Form
@@ -164,6 +166,7 @@ const Step2 = ({
               onChange={setToAddress}
             />
             <Button
+              className="add-button"
               type="link"
               icon={<PlusCircleFilled />}
               size="large"
@@ -188,9 +191,10 @@ const Step2 = ({
                   type="link"
                   icon={<DeleteOutlined />}
                   onClick={async () => {
+                    console.log(election.candidates.splice(index, 1))
                     const updatedAddresses = election.candidates;
                     updatedAddresses.splice(index, 1);
-                    election.candidates.push(updatedAddresses);
+                    election.candidates = updatedAddresses;
                   }}
                   size="medium"
                   style={{ marginLeft: "200px" }}
@@ -209,19 +213,21 @@ const Step2 = ({
 const Step3 = ({ mainnetProvider, election }) => {
   return (
     <>
-      <Descriptions style={{ margin: "2em 12em" }} column={1} size="small">
-        <Descriptions.Item label="Name">{election.name}</Descriptions.Item>
-        <Descriptions.Item label="Allocated Funds">
+      <Descriptions bordered style={{ margin: "2em 12em" }} column={1} size="small">
+        <Descriptions.Item label="Election Name:">{election.name}</Descriptions.Item>
+        <Descriptions.Item label="Allocated Funds:">
           {/* {election.funds} */}
           {fromWei(election.fundAmount ? election.fundAmount.toString() : "0") + " " + election.funds}
         </Descriptions.Item>
         {/* <Descriptions.Item label="Allocated Funds">{newElecAllocatedFunds}</Descriptions.Item> */}
-        <Descriptions.Item label="Votes/Candidate">{election.votes}</Descriptions.Item>
-        <Descriptions.Item label="Candidates">
+        <Descriptions.Item label="Delegated Votes:">{election.votes}</Descriptions.Item>
+        <Descriptions.Item label="Candidates:">
+        Count: {election.candidates.length}
+        <br />
           <List
             style={{ overflow: "auto", height: "10em", width: "32em" }}
             itemLayout="horizontal"
-            bordered
+            // bordered
             dataSource={election.candidates}
             renderItem={(adr, index) => (
               <List.Item>
