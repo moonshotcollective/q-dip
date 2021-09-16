@@ -88,7 +88,7 @@ export default function Elections({
       render: (text, record, index) => (
         <>
           <Space size="middle">
-            <Button type="default" size="small" shape="round" onClick={() => viewElection(record)}>
+            <Button type="default" size="small" shape="round" onClick={() => viewElection(index)}>
               View
             </Button>
             <Button type="default" size="small" shape="round" onClick={() => voteElection(index)}>
@@ -102,8 +102,9 @@ export default function Elections({
 
   const route_history = useHistory();
 
-  function viewElection(record) {
-    route_history.push("/voting/" + record.key);
+  function viewElection(index) {
+    console.log({index})
+    route_history.push("/voting/" + index);
   }
 
   function createElection() {
