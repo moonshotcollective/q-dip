@@ -91,9 +91,6 @@ export default function Elections({
             <Button type="default" size="small" shape="round" onClick={() => viewElection(index)}>
               View
             </Button>
-            <Button type="default" size="small" shape="round" onClick={() => voteElection(index)}>
-              Vote
-            </Button>
           </Space>
         </>
       ),
@@ -186,14 +183,6 @@ export default function Elections({
       n_voted: electionVoted.toNumber()
     };
     electionsMap.set(msg, initElectionEntry);
-  }
-
-  function voteElection(index) {
-    let adrs = ["0x7F2FA234AEd9F7FA0D5070Fb325D1c2C983E96b1", "0x154e80Ebc2e4769A1B680CAC800eE3A2613dC8D6"];
-    let votes = [2, 3];
-    const result = tx(writeContracts.Diplomacy.castBallot(index, adrs, votes), update => {
-      console.log("📡 Transaction Update:", update);
-    });
   }
 
   return (

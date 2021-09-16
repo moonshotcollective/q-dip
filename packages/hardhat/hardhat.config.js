@@ -47,7 +47,7 @@ module.exports = {
   // hardhat gas reporter configs
   gasReporter: {
     currency: "USD",
-    gasPrice: 50,
+    gasPrice: 100,
     coinmarketcap: "dd389059-9822-4d8c-8fc0-d5d37982f64f",
   },
 

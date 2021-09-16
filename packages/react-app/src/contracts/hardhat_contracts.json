@@ -1589,7 +1589,7 @@
       "chainId": "31337",
       "contracts": {
         "Diplomacy": {
-          "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+          "address": "0x4A679253410272dd5232B3Ff7cF5dbB88f295319",
           "abi": [
             {
               "inputs": [],
@@ -1619,9 +1619,9 @@
                 },
                 {
                   "indexed": false,
-                  "internalType": "string[]",
-                  "name": "scores",
-                  "type": "string[]"
+                  "internalType": "uint256[]",
+                  "name": "score",
+                  "type": "uint256[]"
                 }
               ],
               "name": "BallotCast",
@@ -1833,14 +1833,46 @@
                   "type": "address[]"
                 },
                 {
-                  "internalType": "string[]",
+                  "internalType": "uint256[]",
                   "name": "_scores",
-                  "type": "string[]"
+                  "type": "uint256[]"
                 }
               ],
               "name": "castBallot",
               "outputs": [],
               "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "electionScoreFactor",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "name": "electionScoreSum",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
               "type": "function"
             },
             {
@@ -1987,12 +2019,12 @@
                   "type": "address"
                 }
               ],
-              "name": "getElectionScores",
+              "name": "getElectionScore",
               "outputs": [
                 {
-                  "internalType": "string[]",
+                  "internalType": "uint256",
                   "name": "",
-                  "type": "string[]"
+                  "type": "uint256"
                 }
               ],
               "stateMutability": "view",
@@ -2292,19 +2324,14 @@
                   "internalType": "address",
                   "name": "",
                   "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "",
-                  "type": "uint256"
                 }
               ],
               "name": "scores",
               "outputs": [
                 {
-                  "internalType": "string",
+                  "internalType": "uint256",
                   "name": "",
-                  "type": "string"
+                  "type": "uint256"
                 }
               ],
               "stateMutability": "view",

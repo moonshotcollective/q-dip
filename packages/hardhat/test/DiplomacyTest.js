@@ -42,11 +42,12 @@ describe("Quadratic Diplomacy", function () {
             "0x4E53E14de4e264AC2C3fF501ed3Bd6c4Ad63B9A1",
           ], 
           [
-            "1", 
-            "2", 
-            "1", 
-            "0"
-          ]
+            100, 
+            200, 
+            100, 
+            0
+          ], 
+          // 2
         );
       });
     });

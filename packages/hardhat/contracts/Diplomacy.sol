@@ -61,7 +61,11 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     }
     
     mapping(uint256 => mapping(address => bool)) public voted;      // Election-candidate vote status
-    mapping(uint256 => mapping(address => string[])) public scores; // Election-candidate submitted scores
+    mapping(uint256 => mapping(address => uint256)) public scores; // Election-candidate submitted scores
+
+    mapping(uint256 => uint256) public electionScoreSum;
+
+    uint256 public electionScoreFactor = 2; 
 
     mapping(uint256 => Election) public elections;
     
@@ -69,7 +73,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    event BallotCast(address voter, uint256 electionId, address[] adrs, string[] scores);
+    event BallotCast(address voter, uint256 electionId, address[] adrs, uint256[] score);
     event ElectionCreated(address creator, uint256 electionId);
     event ElectionEnded(uint256 electionId);
     event ElectionPaid(uint256 electionId);
@@ -105,13 +109,13 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     modifier validBallot(
         uint256 electionId,
         address[] memory _adrs,
-        string[] memory _scores
+        uint256 _scores
     ) {
 
         require( elections[electionId].active, "Election Not Active!" );
         require( !elections[electionId].paid, "Election is already paid-out!" );
         require( !voted[electionId][msg.sender], "Sender already voted!" );
-        require( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
+        // require( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
         require( _adrs.length == elections[electionId].candidates.length, "Address - Candidate Mismatch!"); 
         //require ( _scores.length == elections[electionId].votes, "Not enough votes sent!" );
         _;
@@ -194,12 +198,15 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     function castBallot(
         uint256 electionId,
         address[] memory _adrs,
-        string[] memory _scores // submitted sqrt of votes
+        uint256[] memory _scores // submitted sqrt of votes
     ) public {
         
+        uint256 scoreSum = 0;
         for (uint256 i = 0; i < _adrs.length; i++) {
-            scores[electionId][_adrs[i]].push(_scores[i]); 
+            scores[electionId][_adrs[i]] += _scores[i];
+            scoreSum += _scores[i];
         }
+        electionScoreSum[electionId] += scoreSum;
         voted[electionId][msg.sender] = true;
         emit BallotCast(msg.sender, electionId, _adrs, _scores);
 
@@ -336,8 +343,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
 
     }
 
-    function getElectionScores(uint256 electionId, address _adr) 
-    public view returns (string[] memory) {
+    function getElectionScore(uint256 electionId, address _adr) 
+    public view returns (uint256) {
         return scores[electionId][_adr];
     }
 

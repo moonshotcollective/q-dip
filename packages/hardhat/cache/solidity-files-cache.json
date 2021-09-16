@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/com.docker.devenvironments.code/packages/hardhat/contracts/Diplomacy.sol": {
-      "lastModificationDate": 1631584101391,
-      "contentHash": "4ee617d3a38660dac81ce3a07c95a3bf",
+      "lastModificationDate": 1631771485579,
+      "contentHash": "263857a38a76384f84ef7bf224e32eb1",
       "sourceName": "contracts/Diplomacy.sol",
       "solcConfig": {
         "version": "0.8.4",
