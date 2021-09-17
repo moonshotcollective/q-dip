@@ -1,14 +1,13 @@
-import { PageHeader } from "antd";
-import { useParams } from "react-router-dom";
-import React, { useState, useEffect } from "react";
-import { Button, Divider, Table, Space } from "antd";
-import { fromWei, toWei, toBN } from "web3-utils";
+import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
 import { TileDocument } from "@ceramicnetwork/stream-tile";
+import { Button, Divider, PageHeader, Space, Table } from "antd";
 import { useStoreActions, useStoreState } from "easy-peasy";
-import { Caip10Link } from '@ceramicnetwork/stream-caip10-link';
+import React, { useEffect, useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import { useParams } from "react-router-dom";
+import { fromWei, toWei } from "web3-utils";
 import { Address, PayButton } from "../components";
 import { makeCeramicClient } from "../helpers";
-import toast, { Toaster } from "react-hot-toast";
 
 export default function Voting({
   address,
@@ -400,19 +399,18 @@ export default function Voting({
   const ethPayHandler = async () => {
     setIsPaying(true);
     const { idx, ceramic, schemasCommitId } = await makeCeramicClient(address);
-    const candidateDids = await Promise.all(election.candidates.map(async candidateAddress => {
-      const caip10 = await Caip10Link.fromAccount(
-        ceramic,
-        `${address}@eip155:1`,
-      );
-      return caip10.did;
-    }));
+    const candidateDids = await Promise.all(
+      election.candidates.map(async candidateAddress => {
+        const caip10 = await Caip10Link.fromAccount(ceramic, `${address}@eip155:1`);
+        return caip10.did;
+      }),
+    );
 
     const candidatesSealedBallots = [];
     for (const candidateDid of candidateDids) {
       const candidateVotes = await idx.get("votes", candidateDid);
-      const foundElectionBallots = Object.values(candidateVotes).find(vote => vote.name === election.name)
-      console.log({ foundElectionBallots })
+      const foundElectionBallots = Object.values(candidateVotes).find(vote => vote.name === election.name);
+      console.log({ foundElectionBallots });
       // load the stream
       const candidateBallotDoc = await TileDocument.load(ceramic, foundElectionBallots.id);
       // get the first commitId which immutable
@@ -421,39 +419,44 @@ export default function Voting({
       const sealedVote = allCommitIds[0];
       // load the first commit
       const sealedVoteDoc = await TileDocument.load(ceramic, sealedVote);
-      console.log('sealed', sealedVoteDoc.content)
+      console.log("sealed", sealedVoteDoc.content);
       candidatesSealedBallots.push(...sealedVoteDoc.content);
     }
-
-    console.log(candidatesSealedBallots)
 
     const defaultValues = election.candidates.reduce((candidatesAddress, addr) => {
       candidatesAddress[addr] = "0";
       return candidatesAddress;
-    }, {})
+    }, {});
     const totalPayoutPerCandidate = candidatesSealedBallots.reduce((candidatePayout, ballot) => {
       console.log(ballot);
       console.log(ballot.voteAttribution);
-        candidatePayout[ballot.address] = candidatePayout[ballot.address]
-          ? (
-            parseFloat(candidatePayout[ballot.address]) + parseFloat(ballot.voteAttribution)
-          ).toString()
-          : "0";
+      candidatePayout[ballot.address] = candidatePayout[ballot.address]
+        ? (parseFloat(candidatePayout[ballot.address]) + parseFloat(ballot.voteAttribution)).toString()
+        : "0";
       return candidatePayout;
-    }, defaultValues)
+    }, defaultValues);
 
-    const { candidates, payouts } = Object.entries(totalPayoutPerCandidate).reduce((serializedCandidatePayout, [candidate, payoutValue]) => {
-      serializedCandidatePayout.candidates.push(candidate)
-      serializedCandidatePayout.payouts.push(payoutValue)
-      return serializedCandidatePayout;
-    }, {
-      candidates: [],
-      payouts: []
-    })
+    const electionFundsEth = Number(fromWei(election.funds.toString(), "ether"));
+    const electionScoresSum = Object.values(totalPayoutPerCandidate).reduce((x, y) => {
+      return parseFloat(x) + parseFloat(y);
+    }, 0);
+    const { candidates, payouts } = Object.entries(totalPayoutPerCandidate).reduce(
+      (serializedCandidatePayout, [candidate, candidateScore]) => {
+        const candidatePayout = electionFundsEth * (parseFloat(candidateScore) / electionScoresSum);
+        const formattedPayout = toWei(parseFloat(candidatePayout).toFixed(10));
+        console.log({ candidate, candidatePayout, formattedPayout });
+        serializedCandidatePayout.candidates.push(candidate);
+        serializedCandidatePayout.payouts.push(formattedPayout);
+        return serializedCandidatePayout;
+      },
+      {
+        candidates: [],
+        payouts: [],
+      },
+    );
 
-    console.log({ candidates, payouts })
     const result = tx(
-      writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
+      writeContracts.Diplomacy.payoutElection(id, candidates, payouts, {
         value: election.funds,
         gasLimit: 12450000,
       }),
@@ -480,19 +483,18 @@ export default function Voting({
     const election = await readContracts.Diplomacy.getElectionById(id);
     console.log({ election });
     const { idx, ceramic, schemasCommitId } = await makeCeramicClient(address);
-    const candidateDids = await Promise.all(election.candidates.map(async candidateAddress => {
-      const caip10 = await Caip10Link.fromAccount(
-        ceramic,
-        `${address}@eip155:1`,
-      );
-      return caip10.did;
-    }));
+    const candidateDids = await Promise.all(
+      election.candidates.map(async candidateAddress => {
+        const caip10 = await Caip10Link.fromAccount(ceramic, `${address}@eip155:1`);
+        return caip10.did;
+      }),
+    );
 
     const candidatesSealedBallots = [];
     for (const candidateDid of candidateDids) {
       const candidateVotes = await idx.get("votes", candidateDid);
-      const foundElectionBallots = Object.values(candidateVotes).find(vote => vote.name === election.name)
-      console.log({ foundElectionBallots })
+      const foundElectionBallots = Object.values(candidateVotes).find(vote => vote.name === election.name);
+      console.log({ foundElectionBallots });
       // load the stream
       const candidateBallotDoc = await TileDocument.load(ceramic, foundElectionBallots.id);
       // get the first commitId which immutable
@@ -501,40 +503,44 @@ export default function Voting({
       const sealedVote = allCommitIds[0];
       // load the first commit
       const sealedVoteDoc = await TileDocument.load(ceramic, sealedVote);
-      console.log('sealed', sealedVoteDoc.content)
+      console.log("sealed", sealedVoteDoc.content);
       candidatesSealedBallots.push(...sealedVoteDoc.content);
     }
-
-    console.log(candidatesSealedBallots)
 
     const defaultValues = election.candidates.reduce((candidatesAddress, addr) => {
       candidatesAddress[addr] = "0";
       return candidatesAddress;
-    }, {})
+    }, {});
     const totalPayoutPerCandidate = candidatesSealedBallots.reduce((candidatePayout, ballot) => {
       console.log(ballot);
       console.log(ballot.voteAttribution);
-        candidatePayout[ballot.address] = candidatePayout[ballot.address]
-          ? (
-            parseFloat(candidatePayout[ballot.address]) + parseFloat(ballot.voteAttribution)
-          ).toString()
-          : "0";
+      candidatePayout[ballot.address] = candidatePayout[ballot.address]
+        ? (parseFloat(candidatePayout[ballot.address]) + parseFloat(ballot.voteAttribution)).toString()
+        : "0";
       return candidatePayout;
-    }, defaultValues)
+    }, defaultValues);
 
-    const { candidates, payouts } = Object.entries(totalPayoutPerCandidate).reduce((serializedCandidatePayout, [candidate, payoutValue]) => {
-      serializedCandidatePayout.candidates.push(candidate)
-      serializedCandidatePayout.payouts.push(payoutValue)
-      return serializedCandidatePayout;
-    }, {
-      candidates: [],
-      payouts: []
-    })
-
-    console.log({ candidates, payouts })
+    const electionFundsEth = Number(fromWei(election.funds.toString(), "ether"));
+    const electionScoresSum = Object.values(totalPayoutPerCandidate).reduce((x, y) => {
+      return parseFloat(x) + parseFloat(y);
+    }, 0);
+    const { candidates, payouts } = Object.entries(totalPayoutPerCandidate).reduce(
+      (serializedCandidatePayout, [candidate, candidateScore]) => {
+        const candidatePayout = electionFundsEth * (parseFloat(candidateScore) / electionScoresSum);
+        const formattedPayout = toWei(parseFloat(candidatePayout).toFixed(10));
+        console.log({ candidate, candidatePayout, formattedPayout });
+        serializedCandidatePayout.candidates.push(candidate);
+        serializedCandidatePayout.payouts.push(formattedPayout);
+        return serializedCandidatePayout;
+      },
+      {
+        candidates: [],
+        payouts: [],
+      },
+    );
 
     tx(
-      writeContracts.Diplomacy.payoutElection(id, payoutInfo.candidates, payoutInfo.payout, {
+      writeContracts.Diplomacy.payoutElection(id, candidates, payouts, {
         gasLimit: 12450000,
       }),
     );
