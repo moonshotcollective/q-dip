@@ -25,12 +25,14 @@ import {
   Col,
   Row,
 } from "antd";
-import { 
-  LeftOutlined, 
-  DeleteOutlined, 
-  CheckOutlined, 
-  PlusOutlined, 
-  PlusCircleFilled 
+import {
+  LeftOutlined,
+  DeleteOutlined,
+  CheckOutlined,
+  PlusOutlined,
+  PlusCircleFilled,
+  ExportOutlined,
+  DoubleRightOutlined,
 } from "@ant-design/icons";
 
 const CURRENCY = "MATIC";
@@ -52,7 +54,6 @@ const Step1 = ({ mainnetProvider, election }) => {
       <Option value="GTC">GTC</Option>
     </Select>
   );
-
 
   return (
     <>
@@ -124,7 +125,7 @@ const Step1 = ({ mainnetProvider, election }) => {
             }}
             min="1"
             onChange={value => {
-              election.votes = value; 
+              election.votes = value;
             }}
           />
         </Form.Item>
@@ -133,10 +134,7 @@ const Step1 = ({ mainnetProvider, election }) => {
   );
 };
 
-const Step2 = ({
-  mainnetProvider,
-  election,
-}) => {
+const Step2 = ({ mainnetProvider, election }) => {
   const [toAddress, setToAddress] = useState("");
   return (
     <>
@@ -191,7 +189,7 @@ const Step2 = ({
                   type="link"
                   icon={<DeleteOutlined />}
                   onClick={async () => {
-                    console.log(election.candidates.splice(index, 1))
+                    console.log(election.candidates.splice(index, 1));
                     const updatedAddresses = election.candidates;
                     updatedAddresses.splice(index, 1);
                     election.candidates = updatedAddresses;
@@ -220,8 +218,8 @@ const Step3 = ({ mainnetProvider, election }) => {
         </Descriptions.Item>
         <Descriptions.Item label="Delegated Votes:">{election.votes}</Descriptions.Item>
         <Descriptions.Item label="Candidates:">
-        Count: {election.candidates.length}
-        <br />
+          Count: {election.candidates.length}
+          <br />
           <List
             style={{ overflow: "auto", height: "10em", width: "36em" }}
             itemLayout="horizontal"
@@ -290,7 +288,31 @@ export default function Create({
 
   const [isConfirmingElection, setIsConfirmingElection] = useState(false);
   const [isCreatedElection, setIsCreatedElection] = useState(false);
-  
+
+  useEffect(() => {
+    if (readContracts) {
+      if (readContracts.Diplomacy) {
+        init();
+      }
+    }
+  }, [readContracts, address]);
+
+  const init = async () => {
+    addEventListener("Diplomacy", "ElectionCreated", onElectionCreated);
+  };
+
+  const addEventListener = async (contractName, eventName, callback) => {
+    await readContracts[contractName].removeListener(eventName);
+    readContracts[contractName].on(eventName, (...args) => {
+      callback(args);
+    });
+  };
+  const [electionId, setElectionId] = useState(-1);
+  const onElectionCreated = args => {
+    console.log(args);
+    setElectionId(args[1]);
+  };
+
   const confirmElection = async () => {
     setIsConfirmingElection(true);
     // Create a new election
@@ -310,10 +332,10 @@ export default function Create({
           return;
         }
         if (update && (update.status === "confirmed" || update.status === 1)) {
-            console.log(" 🍾 Transaction " + update.hash + " finished!");
-            setIsConfirmingElection(false);
-            // update the view!
-            setIsCreatedElection(true);
+          console.log(" 🍾 Transaction " + update.hash + " finished!");
+          setIsConfirmingElection(false);
+          // update the view!
+          setIsCreatedElection(true);
         }
         if (update.status === "error") {
           setIsConfirmingElection(false);
@@ -322,25 +344,34 @@ export default function Create({
     );
   };
 
+  const routeHistory = useHistory();
+
+  const viewElection = index => {
+    console.log({ index });
+    routeHistory.push("/voting/" + index);
+  };
+
   return (
     <>
       <div
         className="create-view"
         style={{ border: "1px solid #cccccc", padding: 16, width: 1000, margin: "auto", marginTop: 64 }}
       >
-        <PageHeader ghost={false} title="Create New Election" onBack={() => window.history.back()} />
+        <PageHeader ghost={false} title="Create New Election" onBack={() => routeHistory.push("/")} />
         <Divider />
         <Steps current={current} style={{ padding: "10px 72px 12px" }}>
           {steps.map(item => (
             <Step key={item.title} title={item.title} />
           ))}
         </Steps>
-        <div className="steps-content" style={{height: "300px"}}>{steps[current].content} </div>
+        <div className="steps-content" style={{ height: "300px" }}>
+          {steps[current].content}{" "}
+        </div>
         <Divider />
         <div className="steps-action">
           <Row>
             <Col span={4}>
-              {current > 0 && (
+              {current > 0 && !isCreatedElection && (
                 <Button type="link" icon={<LeftOutlined />} onClick={() => prev()}>
                   Back
                 </Button>
@@ -349,21 +380,35 @@ export default function Create({
 
             <Col span={8} offset={4}>
               {current < steps.length - 1 && (
-                <Button type="default" size="large" shape="round" onClick={() => next()}>
+                <Button icon={<DoubleRightOutlined />} type="default" size="large" shape="round" onClick={() => next()}>
                   Continue
                 </Button>
               )}
 
               {current === steps.length - 1 && !isCreatedElection && (
-                <Button 
-                  icon={<CheckOutlined />} 
-                  type="primary" 
-                  size="large" 
-                  shape="round" 
-                  loading={ isConfirmingElection }
-                  onClick={ confirmElection }
+                <Button
+                  icon={<CheckOutlined />}
+                  type="primary"
+                  size="large"
+                  shape="round"
+                  loading={isConfirmingElection}
+                  onClick={confirmElection}
                 >
                   Confirm Election
+                </Button>
+              )}
+
+              {current === steps.length - 1 && isCreatedElection && (
+                <Button
+                  icon={<ExportOutlined />}
+                  type="default"
+                  size="large"
+                  shape="round"
+                  onClick={() => {
+                    viewElection(electionId);
+                  }}
+                >
+                  View Election
                 </Button>
               )}
             </Col>

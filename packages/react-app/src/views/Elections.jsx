@@ -20,7 +20,7 @@ import {
   Carousel,
   Typography,
 } from "antd";
-import { PlusOutlined, } from "@ant-design/icons";
+import { PlusOutlined, LinkOutlined } from "@ant-design/icons";
 
 var Map = require("collections/map");
 
@@ -36,43 +36,75 @@ export default function Elections({
   readContracts,
   writeContracts,
 }) {
-
   const [electionsMap, setElectionsMap] = useState();
 
-  const columns = [
-    {
+  const dateCol = () => {
+    return {
+      title: "Created",
+      dataIndex: "created_date",
+      key: "created_date",
+      align: "center",
+      width: 112,
+    };
+  };
+  const nameCol = () => {
+    return {
       title: "Name",
       dataIndex: "name",
       key: "name",
       align: "center",
       render: name => <Typography.Title level={5}>{name}</Typography.Title>,
-    },
-    {
-      title: "Creator", 
-      dataIndex: "creator", 
+    };
+  };
+  const creatorCol = () => {
+    return {
+      title: "Creator",
+      dataIndex: "creator",
       key: "creator",
-      align: "center", 
-      render: creator => <Address address={creator} fontSize="14pt" ensProvider={mainnetProvider} blockExplorer={blockExplorer} />
-    },
-    {
+      align: "center",
+      render: creator => (
+        <Address address={creator} fontSize="14pt" ensProvider={mainnetProvider} blockExplorer={blockExplorer} />
+      ),
+    };
+  };
+  const votedCol = () => {
+    return {
       title: "№ Voted",
       dataIndex: "n_voted",
       key: "n_voted",
       align: "center",
-    },
-    {
-      title: "Tags", 
-      dataIndex: "tags", 
-      key: "tags", 
-      align: "center", 
+      width: 100,
+      render: p => (
+        <Typography.Text>
+          {p.n_voted} / {p.outOf}
+        </Typography.Text>
+      ),
+    };
+  };
+  const statusCol = () => {
+    return {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      align: "center",
+      width: 100,
+      render: status => (status ? <Tag color={"geekblue"}>open</Tag> : <Tag>closed</Tag>),
+    };
+  };
+  const tagsCol = () => {
+    return {
+      title: "Tags",
+      dataIndex: "tags",
+      key: "tags",
+      align: "center",
       render: tags =>
         tags.map(r => {
-          let color = "geekblue";
+          let color = "purple";
           if (r == "candidate") {
+            color = "blue";
+          }
+          if (r === "voted") {
             color = "green";
-          } 
-          if ( r === "voted" ) {
-            color = "purple";
           }
           return (
             <Tag color={color} key={r}>
@@ -80,33 +112,38 @@ export default function Elections({
             </Tag>
           );
         }),
-    },
-    {
+    };
+  };
+  const actionCol = () => {
+    return {
       title: "Action",
       key: "action",
       align: "center",
+      width: 100,
       render: (text, record, index) => (
         <>
           <Space size="middle">
-            <Button type="default" size="small" shape="round" onClick={() => viewElection(index)}>
+            <Button type="link" icon={<LinkOutlined />} size="small" shape="round" onClick={() => viewElection(index)}>
               View
             </Button>
           </Space>
         </>
       ),
-    },
-  ];
+    };
+  };
 
-  const route_history = useHistory();
+  const columns = [dateCol(), nameCol(), creatorCol(), votedCol(), tagsCol(), statusCol(), actionCol()];
 
-  function viewElection(index) {
-    console.log({index})
-    route_history.push("/voting/" + index);
-  }
+  const routeHistory = useHistory();
 
-  function createElection() {
-    route_history.push("/create");
-  }
+  const viewElection = index => {
+    console.log({ index });
+    routeHistory.push("/voting/" + index);
+  };
+
+  const createElection = () => {
+    routeHistory.push("/create");
+  };
 
   useEffect(() => {
     if (readContracts) {
@@ -114,35 +151,37 @@ export default function Elections({
         init();
       }
     }
-  }, [readContracts]);
+  }, [readContracts, address]);
 
   const init = async () => {
-    
     const electionsMap = new Map();
     const numElections = await readContracts.Diplomacy.numElections();
     for (let i = 0; i < numElections; i++) {
-  
       const election = await readContracts.Diplomacy.getElectionById(i);
-      console.log({ election })
-      
-      const electionVoted = await readContracts.Diplomacy.getElectionVoted(i);  
+      console.log({ election });
+
+      const electionVoted = await readContracts.Diplomacy.getElectionVoted(i);
       const hasVoted = await readContracts.Diplomacy.hasVoted(i, address);
 
-      const tags = []
-      if ( election.admin === address ) {
+      const tags = [];
+      if (election.admin === address) {
         tags.push("admin");
-      }      
-      if ( election.candidates.includes(address) ) {
+      }
+      if (election.candidates.includes(address)) {
         tags.push("candidate");
       }
-      if ( hasVoted ) {
-        tags.push("voted")
+      if (hasVoted) {
+        tags.push("voted");
       }
+      let status = election.isActive;
 
+      let created = new Date(election.createdAt.toNumber() * 1000).toISOString().substring(0, 10);
       let electionEntry = {
+        created_date: created,
         name: election.name,
         creator: election.admin,
-        n_voted: electionVoted.toNumber(),
+        n_voted: { n_voted: electionVoted.toNumber(), outOf: election.candidates.length },
+        status: status,
         tags: tags,
       };
 
@@ -153,13 +192,10 @@ export default function Elections({
 
     addEventListener("Diplomacy", "BallotCast", onBallotCast, electionsMap);
     addEventListener("Diplomacy", "ElectionCreated", onElectionCreated, electionsMap);
-
-  }
-
+  };
 
   const addEventListener = async (contractName, eventName, callback, electionsMap) => {
     await readContracts[contractName].removeListener(eventName);
-
     readContracts[contractName].on(eventName, (...args) => {
       let msg = args.pop().args;
       callback(msg, electionsMap);
@@ -168,22 +204,12 @@ export default function Elections({
 
   const onBallotCast = async (msg, electionsMap) => {
     console.log("onBallotCast ", msg);
-    let election = electionsMap.get(msg.electionId.toNumber());
-    const electionVoted = await readContracts.Diplomacy.getElectionVoted(msg.electionId.toNumber())
-    election.n_voted = electionVoted;//election.n_voted + 1;
-    electionsMap.set(msg.electionId.toNumber(), election);
-  }
+  };
 
   const onElectionCreated = async (msg, electionsMap) => {
     console.log("onElectionCreated ", msg);
-    const election = await readContracts.Diplomacy.getElectionById(msg.electionId.toNumber());
-    const electionVoted = await readContracts.Diplomacy.getElectionVoted(msg.electionId.toNumber());
-    let initElectionEntry = {
-      name: election.name, 
-      n_voted: electionVoted.toNumber()
-    };
-    electionsMap.set(msg, initElectionEntry);
-  }
+    init();
+  };
 
   return (
     <>
@@ -195,13 +221,29 @@ export default function Elections({
           ghost={false}
           title="Elections"
           extra={[
-            <Button icon={<PlusOutlined />}type="primary" size="large" shape="round" style={{ margin: 4 }} onClick={createElection}>
+            <Button
+              icon={<PlusOutlined />}
+              type="primary"
+              size="large"
+              shape="round"
+              style={{ margin: 4 }}
+              onClick={createElection}
+            >
               Create Election
             </Button>,
           ]}
         />
-        <Divider />
-        {electionsMap && <Table dataSource={Array.from(electionsMap.values())} columns={columns} pagination={false}></Table>}
+        {electionsMap && (
+          <Table
+            bordered
+            size="middle"
+            dataSource={Array.from(electionsMap.values())}
+            columns={columns}
+            pagination={false}
+            scroll={{ y: 800 }}
+            style={{ padding: 10 }}
+          />
+        )}
       </div>
     </>
   );

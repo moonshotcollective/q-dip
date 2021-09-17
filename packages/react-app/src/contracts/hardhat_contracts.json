@@ -1589,7 +1589,7 @@
       "chainId": "31337",
       "contracts": {
         "Diplomacy": {
-          "address": "0x4A679253410272dd5232B3Ff7cF5dbB88f295319",
+          "address": "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9",
           "abi": [
             {
               "inputs": [],

@@ -8,19 +8,16 @@ code {
 }
 
 .elections-view {
-  background: linear-gradient(to bottom, #ffffff, #ffffff);
   box-shadow: 0px 5px 82px -24px;
   border-radius: 0.8em;
 }
 
 .voting-view {
-  background: linear-gradient(to bottom, #ffffff, #ffffff);
   box-shadow: 0px 5px 82px -24px;
   border-radius: 0.8em;
 }
 
 .create-view {
-  background: linear-gradient(to bottom, #ffffff, #ffffff);
   box-shadow: 0px 5px 82px -24px;
   border-radius: 0.8em;
 }

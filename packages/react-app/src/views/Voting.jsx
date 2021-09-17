@@ -1,5 +1,5 @@
 import { PageHeader } from "antd";
-import { useParams } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { Button, Divider, Table, Space, Typography, Input } from "antd";
 import { fromWei, toWei, toBN, numberToHex } from "web3-utils";
@@ -34,14 +34,11 @@ export default function Voting({
   const [token, setToken] = useState("ETH");
   const [electionFundingAmount, setElectionFundingAmount] = useState(0);
   const [spender, setSpender] = useState("");
+  const [isElectionPaying, setIsElectionPaying] = useState(false);
+  const [electionCandidates, setElectionCandidates] = useState([]);
+  const [candidatePayout, setCandidatePayout] = useState([]);
 
-  const addEventListener = async (contractName, eventName, callback, electionsMap) => {
-    await readContracts[contractName].removeListener(eventName);
-    readContracts[contractName].on(eventName, (...args) => {
-      let msg = args.pop().args;
-      callback(msg, electionsMap);
-    });
-  };
+  const routeHistory = useHistory();
 
   const init = async () => {
     const loadedElection = await readContracts.Diplomacy.getElectionById(id);
@@ -51,30 +48,87 @@ export default function Voting({
     const isCreator = loadedElection.admin == address;
     const isCandidate = loadedElection.candidates.includes(address);
 
-    setIsElectionActive(loadedElection.active);
-    setIsElectionPaid(loadedElection.paid);
+    console.log({ loadedElection });
 
-    if (loadedElection.admin == address) {
-      setIsElectionAdmin(true);
-    }
-    if (!votedStatus && isCandidate) {
-      setCanVote(true);
-    }
-
-    const funds = loadedElection.funds;
-    const ethFund = fromWei(funds.toString(), "ether");
-    setElectionFundingAmount(ethFund);
-
-    setElectionScoreFactor(SCORE_FACTOR);
     setElection(loadedElection);
+    setIsElectionActive(loadedElection.isActive);
+    setIsElectionPaid(loadedElection.paid);
+    setElectionFundingAmount(fromWei(loadedElection.funds.toString(), "ether"));
+    setElectionScoreFactor(SCORE_FACTOR);
     setSpender(readContracts?.Diplomacy?.address);
-    // addEventListener("Diplomacy", "BallotCast", onBallotCast, election);
-    // addEventListener("Diplomacy", "ElectionEnded", onElectionEnded);
-    // addEventListener("Diplomacy", "ElectionPaid", onElectionPaid);
+    setIsElectionAdmin(loadedElection.admin === address);
+    setCanVote(!votedStatus && isCandidate);
+    setElectionCandidates(loadedElection.candidates);
+
+    if (!loadedElection.isActive) {
+      const electionScoreSum = await readContracts.Diplomacy.electionScoreSum(id);
+      const electionFunding = loadedElection.funds;
+      const payout = [];
+      for (let i = 0; i < loadedElection.candidates.length; i++) {
+        const candidateScore = (
+          await readContracts.Diplomacy.getElectionScore(id, loadedElection.candidates[i])
+        ).toNumber();
+        const candidatePay = (candidateScore / electionScoreSum) * electionFunding;
+        if (!isNaN(candidatePay)) {
+          payout.push(fromWei(candidatePay.toString()));
+        } else {
+          payout.push(0);
+        }
+      }
+      console.log({ payout });
+      setCandidatePayout(payout);
+    }
+
+    console.log({
+      isElectionActive: isElectionActive,
+      isElectionPaid: isElectionPaid,
+      electionFundingAmount: electionFundingAmount,
+      electionScoreFactor: electionScoreFactor,
+      spender: spender,
+      isElectionActive: isElectionActive,
+      canVote: canVote,
+    });
+
+    addEventListener("Diplomacy", "BallotCast", onBallotCast, election);
+    addEventListener("Diplomacy", "ElectionEnded", onElectionEnded);
+    addEventListener("Diplomacy", "ElectionPaid", onElectionPaid);
   };
 
-  const onBallotCast = async (msg, election) => {
-    console.log("onBallotCast ", msg);
+  const addEventListener = async (contractName, eventName, callback) => {
+    await readContracts[contractName].removeListener(eventName);
+    readContracts[contractName].on(eventName, (...args) => {
+      // let msg = args.pop().args;
+      callback(args);
+    });
+  };
+
+  const onBallotCast = async args => {
+    console.log("onBallotCast ", args);
+    setCanVote(false);
+  };
+
+  const onElectionEnded = async args => {
+    console.log("onElectionEnded ", args);
+
+    const value = toWei(electionFundingAmount.toString());
+    const adrs = electionCandidates;
+    const pay = [];
+    const electionScoreSum = await readContracts.Diplomacy.electionScoreSum(id);
+    for (let i = 0; i < adrs.length; i++) {
+      const candidateScore = await readContracts.Diplomacy.getElectionScore(id, adrs[i]);
+      const candidatePay = ((candidateScore.toNumber() / electionScoreSum.toNumber()) * value).toString();
+      pay.push(candidatePay);
+    }
+
+    setCandidatePayout(pay);
+
+    setCanVote(false);
+    setIsElectionActive(false);
+  };
+
+  const onElectionPaid = async (msg, electionsMap) => {
+    console.log("onElectionPaid ", msg);
+    setIsElectionPaid(true);
   };
 
   useEffect(() => {
@@ -83,11 +137,10 @@ export default function Voting({
         init();
       }
     }
-  }, [readContracts]);
+  }, [readContracts, address]);
 
   useEffect(() => {
     updateTable();
-
     if (election.candidates) {
       const mapping = new Map();
       for (let i = 0; i < election.candidates.length; i++) {
@@ -95,12 +148,10 @@ export default function Voting({
       }
       setCandidateMap(mapping);
     }
-
     setMyVotes(election.votes);
-  }, [election]);
+  }, [election, address]);
 
   const [votingData, setVotingData] = useState([]);
-
   const [myVotes, setMyVotes] = useState(election.votes);
   const [scoreSum, setScoreSum] = useState(0);
 
@@ -111,7 +162,6 @@ export default function Voting({
       candidate.score = (candidate.votes ** 0.5).toFixed(2);
       candidateMap.set(addr, candidate);
       setMyVotes(myVotes + 1);
-      // setScoreSum(scoreSum - candidate.score);
     }
     console.log(candidate);
   };
@@ -123,53 +173,81 @@ export default function Voting({
       candidate.score = (candidate.votes ** 0.5).toFixed(2);
       candidateMap.set(addr, candidate);
       setMyVotes(myVotes - 1);
-      // setScoreSum(scoreSum + candidate.score);
     }
     console.log(candidate);
   };
 
-  const tableCols = [
-    {
+  const actionCol = () => {
+    if (canVote) {
+      return {
+        title: "Vote",
+        key: "action",
+        render: (text, record, index) => (
+          <>
+            <Space size="middle">
+              <Button
+                icon={<PlusSquareOutlined />}
+                type="link"
+                size="large"
+                onClick={() => addVote(text.address)}
+              ></Button>
+              <Typography.Title level={4} style={{ margin: "0.1em" }}>
+                {candidateMap.get(text.address).votes}
+              </Typography.Title>
+              <Button
+                icon={<MinusSquareOutlined />}
+                type="link"
+                size="large"
+                onClick={() => minusVote(text.address)}
+              ></Button>
+            </Space>
+          </>
+        ),
+      };
+    } else {
+      return {};
+    }
+  };
+
+  const scoreCol = () => {
+    return {
+      title: "Quadratic Score",
+      key: "percentage",
+      render: (text, record, index) => (
+        <>{Math.floor(candidateMap.get(text.address).score * 10 ** electionScoreFactor)}</>
+      ),
+    };
+  };
+
+  const addressCol = () => {
+    return {
       title: "Address",
       dataIndex: "address",
       key: "address",
       render: address => (
         <Address address={address} fontSize="14pt" ensProvider={mainnetProvider} blockExplorer={blockExplorer} />
       ),
-    },
-    {
-      title: "Quadratic Score",
-      key: "percentage",
-      render: (text, record, index) => (
-        <>{Math.floor(candidateMap.get(text.address).score * 10 ** electionScoreFactor)}</>
-      ),
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (text, record, index) => (
-        <>
-          <Space size="middle">
-            <Button
-              icon={<PlusSquareOutlined />}
-              type="link"
-              size="large"
-              onClick={() => addVote(text.address)}
-            ></Button>
-            <Typography.Title level={4} style={{ margin: "0.1em" }}>
-              {candidateMap.get(text.address).votes}
-            </Typography.Title>
-            <Button
-              icon={<MinusSquareOutlined />}
-              type="link"
-              size="large"
-              onClick={() => minusVote(text.address)}
-            ></Button>
-          </Space>
-        </>
-      ),
-    },
-  ];
+    };
+  };
+
+  const payoutCol = () => {
+    return {
+      title: "Expected Payout",
+      dataIndex: "payout",
+      key: "payout",
+      render: (text, record, index) => <>{Number(candidatePayout[index]).toFixed(4)}</>,
+    };
+  };
+
+  const makeTableCols = () => {
+    if (isElectionActive) {
+      return [addressCol(), scoreCol(), actionCol()];
+    } else {
+      return [addressCol(), payoutCol()];
+    }
+  };
+
+  const tableCols = makeTableCols();
 
   const updateTable = async () => {
     let data = [];
@@ -200,7 +278,6 @@ export default function Voting({
     console.log("awaiting metamask/web3 confirm result...", result);
   };
 
-  const [isElectionPaying, setIsElectionPaying] = useState(false);
   const ethPayHandler = async () => {
     setIsElectionPaying(true);
 
@@ -211,10 +288,10 @@ export default function Voting({
     for (let i = 0; i < adrs.length; i++) {
       const candidateScore = await readContracts.Diplomacy.getElectionScore(id, adrs[i]);
       const candidatePay = ((candidateScore.toNumber() / electionScoreSum.toNumber()) * value).toString();
-      pay.push(candidatePay); 
+      pay.push(candidatePay);
     }
 
-    console.log(adrs, pay)
+    console.log(adrs, pay);
 
     const result = tx(
       writeContracts.Diplomacy.payoutElection(id, adrs, pay, {
@@ -259,10 +336,10 @@ export default function Voting({
       >
         <PageHeader
           ghost={false}
-          onBack={() => window.history.back()}
+          onBack={() => routeHistory.push("/")}
           title={election ? election.name : "Loading Election..."}
           extra={[
-            // isElectionActive && isElectionAdmin && (
+            isElectionActive && isElectionAdmin && (
               <Button
                 icon={<CloseCircleOutlined />}
                 type="danger"
@@ -272,10 +349,10 @@ export default function Voting({
                 onClick={() => endElection()}
                 loading={isElectionEnding}
               >
-                End
-              </Button>,
-            // ),
-            !isElectionActive && isElectionAdmin && !isElectionPaid && (
+                End Election
+              </Button>
+            ),
+            !isElectionActive && isElectionAdmin && !isElectionPaid && yourLocalBalance && (
               <PayButton
                 token={token}
                 appName="Quadratic Diplomacy"
@@ -293,7 +370,12 @@ export default function Voting({
             ),
           ]}
         >
-          My Votes: {myVotes}
+          {canVote && (
+            <Typography.Title level={5}>
+              {" "}
+              Funding: {electionFundingAmount} {<Divider type="vertical" />} Remaining Votes: {myVotes}{" "}
+            </Typography.Title>
+          )}
           <Table
             dataSource={votingData}
             columns={tableCols}
@@ -309,7 +391,7 @@ export default function Voting({
             }}
           />
           <Divider />
-          {canVote && (
+          {canVote && isElectionActive && (
             <Button
               icon={<SendOutlined />}
               size="large"
@@ -321,7 +403,7 @@ export default function Voting({
                 const candidates = Array.from(candidateMap.keys());
                 const scores = [];
                 candidateMap.forEach(d => {
-                  scores.push(Math.floor(d.score * (10 ** electionScoreFactor)));
+                  scores.push(Math.floor(d.score * 10 ** electionScoreFactor));
                 });
                 console.log(candidates, scores);
 
@@ -335,7 +417,7 @@ export default function Voting({
                 });
               }}
             >
-              Confrim Votes
+              Cast Ballot
             </Button>
           )}
         </PageHeader>
