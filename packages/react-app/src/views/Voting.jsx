@@ -104,7 +104,7 @@ export default function Voting({
 
   const onBallotCast = async args => {
     console.log("onBallotCast ", args);
-    setCanVote(false);
+    setCanVote(address !== args[0]); // lump sum is bad
   };
 
   const onElectionEnded = async args => {

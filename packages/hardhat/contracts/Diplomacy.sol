@@ -52,11 +52,11 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         string name;                            // Creator title/names/etc
         bool active;                            // Election status
         bool paid;                              // Election payout status
-        uint32 createdAt;                      // Creation block time-stamp
+        uint32 createdAt;                       // Creation block time-stamp
         address[] candidates;                   // Candidates (who can vote/be voted)
         uint256 funds;                          // Allowance of ETH or Tokens for Election
         address token;                          // Address of Election Token (Eth -> 0x00..)
-        int8 votes;                          // Number of votes delegated to each candidate
+        int8 votes;                             // Number of votes delegated to each candidate
         address admin;                          // Address of Election Admin
     }
     
@@ -109,13 +109,13 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     modifier validBallot(
         uint256 electionId,
         address[] memory _adrs,
-        uint256 _scores
+        uint256[] memory _scores
     ) {
 
         require( elections[electionId].active, "Election Not Active!" );
         require( !elections[electionId].paid, "Election is already paid-out!" );
         require( !voted[electionId][msg.sender], "Sender already voted!" );
-        // require( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
+        require( _scores.length == _adrs.length, "Scores - Address Mismatch!" );
         require( _adrs.length == elections[electionId].candidates.length, "Address - Candidate Mismatch!"); 
         //require ( _scores.length == elections[electionId].votes, "Not enough votes sent!" );
         _;
@@ -199,7 +199,7 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         uint256 electionId,
         address[] memory _adrs,
         uint256[] memory _scores // submitted sqrt of votes
-    ) public {
+    ) public validBallot(electionId, _adrs, _scores) {
         
         uint256 scoreSum = 0;
         for (uint256 i = 0; i < _adrs.length; i++) {
@@ -235,7 +235,6 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     ) internal onlyElectionAdmin(electionId) returns(bool) {
 
         uint256 paySum;
-        // bool status;
         for (uint256 i = 0; i < elections[electionId].candidates.length; i++) {
             require( elections[electionId].candidates[i] == _adrs[i], "Election-Address Mismatch!" );
             paySum += _pay[i];

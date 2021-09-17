@@ -3,26 +3,20 @@ import React from "react";
 import Blockies from "react-blockies";
 import { useThemeSwitcher } from "react-css-theme-switcher";
 import { useLookupAddress } from "../hooks";
-import { CopyOutlined } from "@ant-design/icons";
 
 // changed value={address} to address={address}
 
 /*
   ~ What it does? ~
-
   Displays an address with a blockie image and option to copy address
-
   ~ How can I use? ~
-
   <Address
     address={address}
     ensProvider={mainnetProvider}
     blockExplorer={blockExplorer}
     fontSize={fontSize}
   />
-
   ~ Features ~
-
   - Provide ensProvider={mainnetProvider} and your address will be replaced by ENS name
               (ex. "0xa870" => "user.eth")
   - Provide blockExplorer={blockExplorer}, click on address and get the link
@@ -65,7 +59,7 @@ export default function Address(props) {
     return (
       <span style={{ verticalAlign: "middle" }}>
         <a
-          style={{ color: currentTheme === "light" ? "#222222" : "#ddd" }}
+          style={{ color: currentTheme === "light" ? "#222222" : "#C9B8FF" }}
           target="_blank"
           href={etherscanLink}
           rel="noopener noreferrer"
@@ -81,7 +75,7 @@ export default function Address(props) {
     text = (
       <Text editable={{ onChange: props.onChange }} copyable={{ text: address }}>
         <a
-          style={{ color: currentTheme === "light" ? "#222222" : "#ddd" }}
+          style={{ color: currentTheme === "light" ? "#222222" : "#C9B8FF" }}
           target="_blank"
           href={etherscanLink}
           rel="noopener noreferrer"
@@ -92,9 +86,9 @@ export default function Address(props) {
     );
   } else {
     text = (
-      <Text copyable={{ text: address , tooltips:true, icon: <CopyOutlined style={{fontSize: "0.7em"}}/>}}>
+      <Text copyable={{ text: address }}>
         <a
-          style={{ color: currentTheme === "light" ? "#222222" : "#ddd" }}
+          style={{ color: currentTheme === "light" ? "#222222" : "#C9B8FF" }}
           target="_blank"
           href={etherscanLink}
           rel="noopener noreferrer"
@@ -107,10 +101,10 @@ export default function Address(props) {
 
   return (
     <span>
-      <span style={{ verticalAlign: "bottom" }}>
-        <Blockies seed={address.toLowerCase()} size={8} scale={props.fontSize ? props.fontSize / 12 : 4} />
+      <span style={{ verticalAlign: "middle" }}>
+        <Blockies seed={address.toLowerCase()} size={8} scale={props.fontSize ? props.fontSize / 7 : 4} />
       </span>
-      <span style={{ verticalAlign: "middle", paddingLeft: 8, paddingRight: 8, fontSize: props.fontSize ? props.fontSize : 20 }}>
+      <span style={{ verticalAlign: "middle", paddingLeft: 5, fontSize: props.fontSize ? props.fontSize : 28 }}>
         {text}
       </span>
     </span>

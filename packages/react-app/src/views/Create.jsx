@@ -35,7 +35,7 @@ import {
   DoubleRightOutlined,
 } from "@ant-design/icons";
 
-const CURRENCY = "MATIC";
+const CURRENCY = "ETH";
 
 const Step1 = ({ mainnetProvider, election }) => {
   const selectFunds = (
