@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "fastify": "^3.21.0",
+    "mongoose": "^6.0.5",
     "web3": "^1.5.2"
   }
 }
