@@ -21,7 +21,6 @@ import {
   useUserSigner,
 } from "./hooks";
 import { Voting, Elections, Create} from "./views";
-// import Create from "./views/Create"
 
 const { ethers } = require("ethers");
 /*
@@ -45,9 +44,9 @@ const { ethers } = require("ethers");
 
 /// 📡 What chain are your contracts deployed to?
 // const targetNetwork = NETWORKS.kovan; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
-// const targetNetwork = NETWORKS.localhost;
+const targetNetwork = NETWORKS.localhost;
 // const targetNetwork = NETWORKS.matic;
-const targetNetwork = NETWORKS.rinkeby;
+// const targetNetwork = NETWORKS.rinkeby;
 
 // 😬 Sorry for all the console logging
 const DEBUG = false;

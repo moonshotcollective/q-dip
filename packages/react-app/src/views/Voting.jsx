@@ -37,6 +37,7 @@ export default function Voting({
   const [isElectionPaying, setIsElectionPaying] = useState(false);
   const [electionCandidates, setElectionCandidates] = useState([]);
   const [candidatePayout, setCandidatePayout] = useState([]);
+  const [candidateScores, setCandidateScores] = useState([]);
 
   const routeHistory = useHistory();
 
@@ -60,10 +61,11 @@ export default function Voting({
     setCanVote(!votedStatus && isCandidate);
     setElectionCandidates(loadedElection.candidates);
 
-    if (!loadedElection.isActive) {
+    if (!loadedElection.isActive || votedStatus ) {
       const electionScoreSum = await readContracts.Diplomacy.electionScoreSum(id);
       const electionFunding = loadedElection.funds;
       const payout = [];
+      const scores = [];
       for (let i = 0; i < loadedElection.candidates.length; i++) {
         const candidateScore = (
           await readContracts.Diplomacy.getElectionScore(id, loadedElection.candidates[i])
@@ -74,9 +76,12 @@ export default function Voting({
         } else {
           payout.push(0);
         }
+        scores.push(candidateScore); 
       }
       console.log({ payout });
+      console.log({ scores })
       setCandidatePayout(payout);
+      setCandidateScores(scores);
     }
 
     console.log({
@@ -104,7 +109,8 @@ export default function Voting({
 
   const onBallotCast = async args => {
     console.log("onBallotCast ", args);
-    setCanVote(address !== args[0]); // lump sum is bad
+    const votedStatus = await readContracts.Diplomacy.hasVoted(id, address);
+    setCanVote(address !== args[0] && !votedStatus); // lump sum is bad
   };
 
   const onElectionEnded = async args => {
@@ -210,13 +216,23 @@ export default function Voting({
   };
 
   const scoreCol = () => {
-    return {
-      title: "Quadratic Score",
-      key: "percentage",
-      render: (text, record, index) => (
-        <>{Math.floor(candidateMap.get(text.address).score * 10 ** electionScoreFactor)}</>
-      ),
-    };
+    if ( isElectionActive ) {
+      return {
+        title: "Quadratic Score",
+        key: "score",
+        render: (text, record, index) => (
+          <>{candidateScores[index]}</>
+        ),
+      }
+    } else {
+      return {
+        title: "Quadratic Score",
+        key: "score",
+        render: (text, record, index) => (
+          <>{Math.floor(candidateMap.get(text.address).score * 10 ** electionScoreFactor)}</>
+        ),
+      };
+    }
   };
 
   const addressCol = () => {

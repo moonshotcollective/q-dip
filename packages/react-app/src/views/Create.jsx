@@ -36,6 +36,7 @@ import {
 } from "@ant-design/icons";
 
 const CURRENCY = "ETH";
+const TOKEN = "UNI";
 
 const Step1 = ({ mainnetProvider, election }) => {
   const selectFunds = (
@@ -44,14 +45,14 @@ const Step1 = ({ mainnetProvider, election }) => {
       className="select-funds-type"
       onChange={value => {
         // GTC-MATIC (PoS) TOKEN ADDRESS!
-        const adr = "0xdb95f9188479575F3F718a245EcA1B3BF74567EC";
+        const adr = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"; // GTC: "0xdb95f9188479575F3F718a245EcA1B3BF74567EC";
         election.tokenAdr = adr;
         election.fundAmount = value;
       }}
     >
       <Option value={CURRENCY}>{CURRENCY}</Option>
       {/* <Option value={electionTokenName}>{electionTokenName}</Option> */}
-      <Option value="GTC">GTC</Option>
+      <Option value={TOKEN}>{TOKEN}</Option>
     </Select>
   );
 
