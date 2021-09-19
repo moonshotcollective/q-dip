@@ -9,6 +9,7 @@
   "author": "QEDK",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^10.0.0",
     "fastify": "^3.21.0",
     "mongoose": "^6.0.5",
     "web3": "^1.5.2"
