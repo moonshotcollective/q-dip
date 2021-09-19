@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.7;
 
 import "./EIP712Base.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -9,7 +9,7 @@ contract EIP712MetaTransaction is EIP712Base {
     bytes32 private constant META_TRANSACTION_TYPEHASH = keccak256(bytes("MetaTransaction(uint256 nonce,address from,bytes functionSignature)"));
 
     event MetaTransactionExecuted(address userAddress, address payable relayerAddress, bytes functionSignature);
-    event BatchMetaTransactionExecuted(address payable relayerAddress, uint256 functionCalls);
+    event BatchMetaTransactionExecuted(address payable relayerAddress, bytes[] data);
     mapping(address => uint256) private nonces;
 
     /*
@@ -36,7 +36,7 @@ contract EIP712MetaTransaction is EIP712Base {
     }
 
     function executeMetaTransaction(address userAddress,
-        bytes memory functionSignature, bytes32 sigR, bytes32 sigS, uint8 sigV) public payable returns(bytes memory) {
+        bytes memory functionSignature, bytes32 sigR, bytes32 sigS, uint8 sigV) external payable returns(bytes memory) {
         bytes4 destinationFunctionSig = convertBytesToBytes4(functionSignature);
         require(destinationFunctionSig != msg.sig, "functionSignature can not be of executeMetaTransaction method");
         MetaTransaction memory metaTx = MetaTransaction({
@@ -54,12 +54,29 @@ contract EIP712MetaTransaction is EIP712Base {
         return returnData;
     }
 
-    function executeBatchMetaTransaction(bytes[] calldata mtx, uint256 size) public payable returns(bool) {
+    function executeBatchMetaTransaction(bytes[] calldata mtx, uint256 size) external payable returns(bool) {
         for (uint256 i = 0; i < size; i++) {
             (address userAddress, bytes memory functionSignature, bytes32 sigR, bytes32 sigS, uint8 sigV) = abi.decode(mtx[i], (address, bytes, bytes32, bytes32, uint8));
-            executeMetaTransaction(userAddress, functionSignature, sigR, sigS, sigV);
+            bytes4 destinationFunctionSig = convertBytesToBytes4(functionSignature);
+            if(destinationFunctionSig == msg.sig) { // if metatx calls this function, skip it (avoids re-entrancy)
+                continue;
+            }
+            MetaTransaction memory metaTx = MetaTransaction({
+                nonce: nonces[userAddress],
+                from: userAddress,
+                functionSignature: functionSignature
+            });
+            if(!verify(userAddress, metaTx, sigR, sigS, sigV)) {
+                continue;
+            }
+            nonces[userAddress] = nonces[userAddress].add(1);
+            // Append userAddress at the end to extract it from calling context
+            (bool success,) = address(this).call(abi.encodePacked(functionSignature, userAddress));
+            if(!success) {
+                continue;
+            }
+            emit MetaTransactionExecuted(userAddress, payable(msg.sender), functionSignature);
         }
-        emit BatchMetaTransactionExecuted(payable(msg.sender), size);
         return true;
     }
 

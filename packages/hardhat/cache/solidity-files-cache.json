@@ -2,15 +2,15 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/ankit/q-dip/packages/hardhat/contracts/Diplomacy.sol": {
-      "lastModificationDate": 1631375720261,
-      "contentHash": "d69de9a5c0eb53c9fa50f36e671ff942",
+      "lastModificationDate": 1632068645352,
+      "contentHash": "6965faddbfd2f792ba2b5b82c5ddf951",
       "sourceName": "contracts/Diplomacy.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -47,22 +47,22 @@
         "./EIP712MetaTransaction.sol"
       ],
       "versionPragmas": [
-        "^0.8.0"
+        "^0.8.7"
       ],
       "artifacts": [
         "Diplomacy"
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/access/AccessControl.sol": {
-      "lastModificationDate": 1630955355727,
-      "contentHash": "1921bd7330469cb24dcdb2f9c93f579c",
+      "lastModificationDate": 1632068763488,
+      "contentHash": "74fb01cf14d85fd1e7f25b22c6472e6e",
       "sourceName": "@openzeppelin/contracts/access/AccessControl.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -88,6 +88,7 @@
         }
       },
       "imports": [
+        "./IAccessControl.sol",
         "../utils/Context.sol",
         "../utils/Strings.sol",
         "../utils/introspection/ERC165.sol"
@@ -96,20 +97,19 @@
         "^0.8.0"
       ],
       "artifacts": [
-        "AccessControl",
-        "IAccessControl"
+        "AccessControl"
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
-      "lastModificationDate": 1630955355738,
+      "lastModificationDate": 1632068764310,
       "contentHash": "4fe56b59ced59d87df6b796758f62895",
       "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -145,15 +145,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol": {
-      "lastModificationDate": 1630955355739,
+      "lastModificationDate": 1632068764437,
       "contentHash": "5365090efc586b728719e562ebfed0d6",
       "sourceName": "@openzeppelin/contracts/utils/math/SafeMath.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -187,15 +187,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
-      "lastModificationDate": 1630955355730,
-      "contentHash": "acad756301f0fb200ecc66138e8cd5c5",
+      "lastModificationDate": 1632068763503,
+      "contentHash": "2cd550cedf51b8d294607dad5023d717",
       "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -233,15 +233,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
-      "lastModificationDate": 1630955355736,
+      "lastModificationDate": 1632068764104,
       "contentHash": "0eac3e1a83ee62326ca007811285b274",
       "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -275,15 +275,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol": {
-      "lastModificationDate": 1630955355739,
+      "lastModificationDate": 1632068764422,
       "contentHash": "d37406082a74a9b6b114de522fcb6349",
       "sourceName": "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -320,15 +320,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol": {
-      "lastModificationDate": 1630955355738,
+      "lastModificationDate": 1632068764391,
       "contentHash": "53fbff678f378956efcb207fa748eaa6",
       "sourceName": "@openzeppelin/contracts/security/ReentrancyGuard.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -362,15 +362,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/contracts/EIP712MetaTransaction.sol": {
-      "lastModificationDate": 1631376717740,
-      "contentHash": "0559c6a3dfbb064144e4329c49b432c2",
+      "lastModificationDate": 1632069012955,
+      "contentHash": "ec90a3a03b70a9a914bc8cdd6ba267f0",
       "sourceName": "contracts/EIP712MetaTransaction.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -400,22 +400,64 @@
         "@openzeppelin/contracts/utils/math/SafeMath.sol"
       ],
       "versionPragmas": [
-        "^0.8.0"
+        "^0.8.7"
       ],
       "artifacts": [
         "EIP712MetaTransaction"
       ]
     },
-    "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1630955355727,
-      "contentHash": "07f148e0d44b2ffc23b3ae6dd6e38cfb",
-      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
+    "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/access/IAccessControl.sol": {
+      "lastModificationDate": 1632068763912,
+      "contentHash": "e2ed3260ca37d27f68b0ab41f692b407",
+      "sourceName": "@openzeppelin/contracts/access/IAccessControl.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IAccessControl"
+      ]
+    },
+    "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/utils/Context.sol": {
+      "lastModificationDate": 1632068763490,
+      "contentHash": "851485d5b925529b1a2f34a0be077891",
+      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
+      "solcConfig": {
+        "version": "0.8.7",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -449,15 +491,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/utils/Strings.sol": {
-      "lastModificationDate": 1630955355739,
+      "lastModificationDate": 1632068764494,
       "contentHash": "62142442bed149f965c5ed971fae4182",
       "sourceName": "@openzeppelin/contracts/utils/Strings.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -491,15 +533,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
-      "lastModificationDate": 1630955355729,
+      "lastModificationDate": 1632068763499,
       "contentHash": "a9a5319dff9088c6ffe757ea1c2a6729",
       "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -535,15 +577,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
-      "lastModificationDate": 1630955355735,
+      "lastModificationDate": 1632068764021,
       "contentHash": "9a04322bb8f6b8f2767d8358d1d2537b",
       "sourceName": "@openzeppelin/contracts/utils/introspection/IERC165.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -577,15 +619,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
-      "lastModificationDate": 1630955355736,
+      "lastModificationDate": 1632068764127,
       "contentHash": "aa1be06992a99bb7393b26a6af3c4dfb",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -621,15 +663,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/node_modules/@openzeppelin/contracts/utils/Address.sol": {
-      "lastModificationDate": 1630955355727,
-      "contentHash": "1ea1589528625ace210951bc8cd186c9",
+      "lastModificationDate": 1632068763488,
+      "contentHash": "c5f6c4e4df069c789e7d84b4c3011913",
       "sourceName": "@openzeppelin/contracts/utils/Address.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -663,15 +705,15 @@
       ]
     },
     "/Users/ankit/q-dip/packages/hardhat/contracts/EIP712Base.sol": {
-      "lastModificationDate": 1631375744275,
-      "contentHash": "248293e9fca631ee6f4b017ae300cf0c",
+      "lastModificationDate": 1632066845579,
+      "contentHash": "93ea353f7dad5a28b4183cdaff6f0dc7",
       "sourceName": "contracts/EIP712Base.sol",
       "solcConfig": {
-        "version": "0.8.4",
+        "version": "0.8.7",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 999
           },
           "outputSelection": {
             "*": {
@@ -698,7 +740,7 @@
       },
       "imports": [],
       "versionPragmas": [
-        "^0.8.0"
+        "^0.8.7"
       ],
       "artifacts": [
         "EIP712Base"
