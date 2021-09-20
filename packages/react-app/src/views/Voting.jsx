@@ -38,6 +38,7 @@ export default function Voting({
   const [electionCandidates, setElectionCandidates] = useState([]);
   const [candidatePayout, setCandidatePayout] = useState([]);
   const [candidateScores, setCandidateScores] = useState([]);
+  const [electionScoreSum, setElectionScoreSum] = useState(1); 
 
   const routeHistory = useHistory();
 
@@ -62,7 +63,7 @@ export default function Voting({
     setElectionCandidates(loadedElection.candidates);
 
     if (!loadedElection.isActive || votedStatus ) {
-      const electionScoreSum = await readContracts.Diplomacy.electionScoreSum(id);
+      const scoreSum = await readContracts.Diplomacy.electionScoreSum(id);
       const electionFunding = loadedElection.funds;
       const payout = [];
       const scores = [];
@@ -70,7 +71,7 @@ export default function Voting({
         const candidateScore = (
           await readContracts.Diplomacy.getElectionScore(id, loadedElection.candidates[i])
         ).toNumber();
-        const candidatePay = (candidateScore / electionScoreSum) * electionFunding;
+        const candidatePay = (candidateScore / scoreSum) * electionFunding;
         if (!isNaN(candidatePay)) {
           payout.push(fromWei(candidatePay.toString()));
         } else {
@@ -82,6 +83,7 @@ export default function Voting({
       console.log({ scores })
       setCandidatePayout(payout);
       setCandidateScores(scores);
+      setElectionScoreSum(scoreSum);
     }
 
     console.log({
@@ -255,11 +257,21 @@ export default function Voting({
     };
   };
 
+  const percentageCol = () => {
+    return {
+      title: "Allocation %",
+      key: "percentage",
+      render: (text, record, index) => (
+        <>{`${((candidateScores[index] / electionScoreSum) * 100).toFixed(1)}` + "%" }</>
+      ),
+    };
+  };
+
   const makeTableCols = () => {
     if (isElectionActive) {
       return [addressCol(), scoreCol(), actionCol()];
     } else {
-      return [addressCol(), payoutCol()];
+      return [addressCol(), percentageCol(), payoutCol()];
     }
   };
 
