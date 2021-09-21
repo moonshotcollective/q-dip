@@ -38,7 +38,7 @@ import {
 const CURRENCY = "ETH";
 const TOKEN = "UNI";
 
-const Step1 = ({ mainnetProvider, election }) => {
+const Step1 = ({ mainnetProvider, election, form }) => {
   const selectFunds = (
     <Select
       defaultValue={CURRENCY}
@@ -59,6 +59,7 @@ const Step1 = ({ mainnetProvider, election }) => {
   return (
     <>
       <Form
+        form={form}
         layout="vertical"
         style={{ margin: "2em 12em" }}
         name="createForm"
@@ -135,7 +136,7 @@ const Step1 = ({ mainnetProvider, election }) => {
   );
 };
 
-const Step2 = ({ mainnetProvider, election }) => {
+const Step2 = ({ mainnetProvider, election, errorMsg }) => {
   const [toAddress, setToAddress] = useState("");
   return (
     <>
@@ -204,6 +205,7 @@ const Step2 = ({ mainnetProvider, election }) => {
             )}
           />
         </Form.Item>
+        <Typography.Text type="danger">{errorMsg}</Typography.Text>
       </Form>
     </>
   );
@@ -212,7 +214,7 @@ const Step2 = ({ mainnetProvider, election }) => {
 const Step3 = ({ mainnetProvider, election }) => {
   return (
     <>
-      <Descriptions bordered style={{ margin: "2em 10em" }} column={1} size="small">
+      <Descriptions bordered style={{ margin: "2em 5em" }} column={1} size="small">
         <Descriptions.Item label="Election Name:">{election.name}</Descriptions.Item>
         <Descriptions.Item label="Allocated Funds:">
           {fromWei(election.fundAmount ? election.fundAmount.toString() : "0") + " " + election.funds}
@@ -228,7 +230,7 @@ const Step3 = ({ mainnetProvider, election }) => {
             dataSource={election.candidates}
             renderItem={(adr, index) => (
               <List.Item>
-                <Address address={adr} ensProvider={mainnetProvider} fontSize="14pt" />
+                <Address address={adr} ensProvider={mainnetProvider} fontSize="12pt" />
               </List.Item>
             )}
           />
@@ -264,14 +266,17 @@ export default function Create({
 
   const { Step } = Steps;
 
+  const [formStep1, formStep2] = Form.useForm();
+  const [errorMsg, setErrorMsg] = useState();
+
   const steps = [
     {
       title: "Election Details",
-      content: <Step1 mainnetProvider={mainnetProvider} election={newElection} />,
+      content: <Step1 mainnetProvider={mainnetProvider} election={newElection} form={formStep1} />,
     },
     {
       title: "Add Candidates",
-      content: <Step2 mainnetProvider={mainnetProvider} election={newElection} />,
+      content: <Step2 mainnetProvider={mainnetProvider} election={newElection} errorMsg={errorMsg} />,
     },
     {
       title: "Review & Confirm",
@@ -279,8 +284,24 @@ export default function Create({
     },
   ];
 
-  const next = () => {
-    setCurrent(current + 1);
+  const stepToSecond = () => {
+    formStep1
+      .validateFields()
+      .then(values => {
+        setCurrent(current + 1);
+      })
+      .then(err => {
+        //
+      });
+  };
+
+  const stepToThird = () => {
+    if (newElection.candidates.length == 0) {
+      setErrorMsg("Atleast 1 ENS name required!");
+    } else {
+      setCurrent(current + 1);
+      setErrorMsg(null);
+    }
   };
 
   const prev = () => {
@@ -338,7 +359,7 @@ export default function Create({
           // update the view!
           setIsCreatedElection(true);
         }
-        if (update.status === "error") {
+        if (!update.status || update.status === "error") {
           setIsConfirmingElection(false);
         }
       },
@@ -380,8 +401,29 @@ export default function Create({
             </Col>
 
             <Col span={8} offset={4}>
-              {current < steps.length - 1 && (
-                <Button icon={<DoubleRightOutlined />} type="default" size="large" shape="round" onClick={() => next()}>
+              {current == 0 && (
+                <Button
+                  icon={<DoubleRightOutlined />}
+                  type="default"
+                  size="large"
+                  shape="round"
+                  onClick={() => {
+                    stepToSecond();
+                  }}
+                >
+                  Continue
+                </Button>
+              )}
+              {current == 1 && (
+                <Button
+                  icon={<DoubleRightOutlined />}
+                  type="default"
+                  size="large"
+                  shape="round"
+                  onClick={() => {
+                    stepToThird();
+                  }}
+                >
                   Continue
                 </Button>
               )}

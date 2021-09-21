@@ -20,7 +20,7 @@ import {
   useOnBlock,
   useUserSigner,
 } from "./hooks";
-import { Voting, Elections, Create} from "./views";
+import { Voting, Elections, Create } from "./views";
 
 const { ethers } = require("ethers");
 /*
@@ -44,9 +44,9 @@ const { ethers } = require("ethers");
 
 /// 📡 What chain are your contracts deployed to?
 // const targetNetwork = NETWORKS.kovan; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
-// const targetNetwork = NETWORKS.localhost;
+const targetNetwork = NETWORKS.localhost;
 // const targetNetwork = NETWORKS.matic;
-const targetNetwork = NETWORKS.rinkeby;
+// const targetNetwork = NETWORKS.rinkeby;
 
 // 😬 Sorry for all the console logging
 const DEBUG = false;
@@ -306,7 +306,17 @@ function App(props) {
     }
   } else {
     networkDisplay = (
-      <div style={{ zIndex: -1, position: "absolute", right: 154, top: 28, padding: 16, color: targetNetwork.color }}>
+      <div
+        style={{
+          zIndex: -1,
+          position: "absolute",
+          right: 40,
+          top: 45,
+          padding: 16,
+          color: targetNetwork.color,
+          fontSize: 17,
+        }}
+      >
         {targetNetwork.name}
       </div>
     );
@@ -389,7 +399,7 @@ function App(props) {
               address={address}
               blockExplorer={blockExplorer}
             />
-          </Route> 
+          </Route>
           <Route exact path="/">
             <Elections
               address={address}

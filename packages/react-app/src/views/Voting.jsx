@@ -38,7 +38,7 @@ export default function Voting({
   const [electionCandidates, setElectionCandidates] = useState([]);
   const [candidatePayout, setCandidatePayout] = useState([]);
   const [candidateScores, setCandidateScores] = useState([]);
-  const [electionScoreSum, setElectionScoreSum] = useState(1); 
+  const [electionScoreSum, setElectionScoreSum] = useState(1);
 
   const routeHistory = useHistory();
 
@@ -62,7 +62,7 @@ export default function Voting({
     setCanVote(!votedStatus && isCandidate);
     setElectionCandidates(loadedElection.candidates);
 
-    if (!loadedElection.isActive || votedStatus ) {
+    if (!loadedElection.isActive || votedStatus) {
       const scoreSum = await readContracts.Diplomacy.electionScoreSum(id);
       const electionFunding = loadedElection.funds;
       const payout = [];
@@ -71,16 +71,16 @@ export default function Voting({
         const candidateScore = (
           await readContracts.Diplomacy.getElectionScore(id, loadedElection.candidates[i])
         ).toNumber();
-        const candidatePay = (candidateScore / scoreSum) * electionFunding;
+        const candidatePay = Math.floor((candidateScore / scoreSum) * electionFunding);
         if (!isNaN(candidatePay)) {
           payout.push(fromWei(candidatePay.toString()));
         } else {
           payout.push(0);
         }
-        scores.push(candidateScore); 
+        scores.push(candidateScore);
       }
       console.log({ payout });
-      console.log({ scores })
+      console.log({ scores });
       setCandidatePayout(payout);
       setCandidateScores(scores);
       setElectionScoreSum(scoreSum);
@@ -113,6 +113,19 @@ export default function Voting({
     console.log("onBallotCast ", args);
     const votedStatus = await readContracts.Diplomacy.hasVoted(id, address);
     setCanVote(address !== args[0] && !votedStatus); // lump sum is bad
+    updateCandidateScore();
+  };
+
+  const updateCandidateScore = async args => {
+    const loadedElection = await readContracts.Diplomacy.getElectionById(id);
+    const scores = [];
+    for (let i = 0; i < loadedElection.candidates.length; i++) {
+      const candidateScore = (
+        await readContracts.Diplomacy.getElectionScore(id, loadedElection.candidates[i])
+      ).toNumber();
+      scores.push(candidateScore);
+    }
+    setCandidateScores(scores);
   };
 
   const onElectionEnded = async args => {
@@ -218,14 +231,12 @@ export default function Voting({
   };
 
   const scoreCol = () => {
-    if ( isElectionActive ) {
+    if (isElectionActive) {
       return {
         title: "Quadratic Score",
         key: "score",
-        render: (text, record, index) => (
-          <>{candidateScores[index]}</>
-        ),
-      }
+        render: (text, record, index) => <>{candidateScores[index]}</>,
+      };
     } else {
       return {
         title: "Quadratic Score",
@@ -261,9 +272,7 @@ export default function Voting({
     return {
       title: "Allocation %",
       key: "percentage",
-      render: (text, record, index) => (
-        <>{`${((candidateScores[index] / electionScoreSum) * 100).toFixed(1)}` + "%" }</>
-      ),
+      render: (text, record, index) => <>{`${((candidateScores[index] / electionScoreSum) * 100).toFixed(1)}` + "%"}</>,
     };
   };
 

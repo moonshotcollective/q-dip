@@ -1,10 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+
+* {
+  font-family: "Space Mono", monospace;
+}
+
 body {
   margin: 0;
+  background-color: rgb(37, 5, 68);
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 .elections-view {
@@ -26,7 +32,25 @@ code {
   border-radius: 0.8em;
 }
 
-
 .ant-divider-horizontal.ant-divider-with-text {
   color: rgb(0 0 0 / 18%);
+}
+
+.ant-page-header-heading-title {
+  color: #ffcc00;
+  font-weight: 300;
+}
+
+.header-sub {
+  color: #6f3ff5;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.ant-page-header {
+  background-color: rgb(37, 5, 68);
+}
+
+.ant-btn-primary {
+  background-color: #6f3ff5;
 }
