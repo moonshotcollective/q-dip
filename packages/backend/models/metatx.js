@@ -5,10 +5,6 @@ const metaTxSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  nonce: {
-    type: Number,
-    required: true
-  },
   data: {
     type: String,
     required: true
