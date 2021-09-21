@@ -194,19 +194,19 @@ export default function Voting({
           <>
             <Space size="middle">
               <Button
-                icon={<PlusSquareOutlined />}
+                icon={<MinusSquareOutlined />}
                 type="link"
                 size="large"
-                onClick={() => addVote(text.address)}
+                onClick={() => minusVote(text.address)}
               ></Button>
               <Typography.Title level={4} style={{ margin: "0.1em" }}>
                 {candidateMap.get(text.address).votes}
               </Typography.Title>
               <Button
-                icon={<MinusSquareOutlined />}
+                icon={<PlusSquareOutlined />}
                 type="link"
                 size="large"
-                onClick={() => minusVote(text.address)}
+                onClick={() => addVote(text.address)}
               ></Button>
             </Space>
           </>
@@ -253,7 +253,7 @@ export default function Voting({
       title: "Expected Payout",
       dataIndex: "payout",
       key: "payout",
-      render: (text, record, index) => <>{Number(candidatePayout[index]).toFixed(4)}</>,
+      render: (text, record, index) => <>{`${Number(candidatePayout[index]).toFixed(4)}` + ` ${token}`}</>,
     };
   };
 
