@@ -48,7 +48,7 @@ fastify.get('/vote/:electionId/:address', async (request, reply) => {
 fastify.post('/metatx/:electionId', async (request, reply) => {
   try {
     const electionStatus = await diplomacyContract.getElectionById(request.params.electionId).call()
-    if (!electionStatus) {
+    if (!electionStatus.isActive) {
       throw new Error('Election is not active')
     }
     const { userAddress, functionSignature, sigR, sigS, sigV } = request.body
@@ -102,7 +102,17 @@ fastify.get('/metatx/:electionId', async (request, reply) => {
 })
 
 fastify.delete('/metatx/:electionId', async (request, reply) => {
-
+  try {
+    const electionStatus = await diplomacyContract.getElectionById(request.params.electionId).call()
+    if (electionStatus.isActive) {
+      throw new Error('Election is still active')
+    }
+    await MetaTx.deleteMany({ electionId: request.params.electionId })
+    return { statusCode: 200 }
+  } catch(err) {
+    fastify.log.error(err)
+    return { statusCode: 400, message: err }
+  }
 })
 
 const start = async () => {
