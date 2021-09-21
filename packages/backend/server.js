@@ -27,12 +27,13 @@ fastify.get('/nonce/:address', async (request, reply) => {
 
 fastify.get('/vote/:electionId/:address', async (request, reply) => {
   try {
-    const hasVoted = await diplomacyContract.hasVoted(request.params.electionId, userAddress)
+    const hasVoted = await diplomacyContract.hasVoted(request.params.electionId, request.params.address)
     if (hasVoted) {
       return { electionId: request.params.electionId, address: request.params.address, voteStatus: true }
     }
     const metaTxVotes = await MetaTx.countDocuments({
-      from: request.params.address, electionId:
+      from: request.params.address,
+      electionId:
       request.params.electionId
     })
     if (metaTxVotes > 0) {
@@ -52,13 +53,9 @@ fastify.post('/metatx/:electionId', async (request, reply) => {
       throw new Error('Election is not active')
     }
     const { userAddress, functionSignature, sigR, sigS, sigV } = request.body
-    try {
-      const address = await web3.eth.accounts.recover(functionSignature, sigV, sigR, sigS)
-      if (address != userAddress) {
-        throw new Error('Address does not match signature')
-      }
-    } catch (err) {
-      throw err
+    const address = await web3.eth.accounts.recover(functionSignature, sigV, sigR, sigS)
+    if (address !== userAddress) {
+      throw new Error('Address does not match signature')
     }
     const isVoter = await diplomacyContract.canVote(request.params.electionId, userAddress)
     if (!isVoter) {
@@ -95,7 +92,7 @@ fastify.get('/metatx/:electionId', async (request, reply) => {
   try {
     const votes = await MetaTx.find({ electionId: request.params.electionId }, { _id: 0, __v: 0 }).lean()
     return { electionId: request.params.electionId, voteArray: votes }
-  } catch(err) {
+  } catch (err) {
     fastify.log.error(err)
     return { statusCode: 400, message: err }
   }
@@ -109,7 +106,7 @@ fastify.delete('/metatx/:electionId', async (request, reply) => {
     }
     await MetaTx.deleteMany({ electionId: request.params.electionId })
     return { statusCode: 200 }
-  } catch(err) {
+  } catch (err) {
     fastify.log.error(err)
     return { statusCode: 400, message: err }
   }
