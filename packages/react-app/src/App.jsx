@@ -44,9 +44,9 @@ const { ethers } = require("ethers");
 
 /// 📡 What chain are your contracts deployed to?
 // const targetNetwork = NETWORKS.kovan; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
-const targetNetwork = NETWORKS.localhost;
+// const targetNetwork = NETWORKS.localhost;
 // const targetNetwork = NETWORKS.matic;
-// const targetNetwork = NETWORKS.rinkeby;
+const targetNetwork = NETWORKS.localhost;
 
 // 😬 Sorry for all the console logging
 const DEBUG = false;

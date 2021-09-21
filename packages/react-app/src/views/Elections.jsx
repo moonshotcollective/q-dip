@@ -154,8 +154,9 @@ export default function Elections({
   }, [readContracts, address]);
 
   const init = async () => {
-    const electionsMap = new Map();
+    const newElectionsMap = new Map();
     const numElections = await readContracts.Diplomacy.numElections();
+
     for (let i = 0; i < numElections; i++) {
       const election = await readContracts.Diplomacy.getElectionById(i);
       console.log({ election });
@@ -185,13 +186,13 @@ export default function Elections({
         tags: tags,
       };
 
-      electionsMap.set(i, electionEntry);
+      newElectionsMap.set(i, electionEntry);
     }
 
-    addEventListener("Diplomacy", "BallotCast", onBallotCast, electionsMap);
-    addEventListener("Diplomacy", "ElectionCreated", onElectionCreated, electionsMap);
+    addEventListener("Diplomacy", "BallotCast", onBallotCast, newElectionsMap);
+    addEventListener("Diplomacy", "ElectionCreated", onElectionCreated, newElectionsMap);
 
-    setElectionsMap(electionsMap);
+    setElectionsMap(newElectionsMap);
   };
 
   const addEventListener = async (contractName, eventName, callback, electionsMap) => {
@@ -203,7 +204,7 @@ export default function Elections({
   };
 
   const onBallotCast = async (msg, electionsMap) => {
-    console.log("onBallotCast ", msg.electionId.toNumber(), electionsMap);
+    console.log("onBallotCast ", msg.electionId.toNumber(), electionsMap[0]);
     if (electionsMap[msg.electionId.toNumber()] !== undefined) {
       let electionEntry = electionsMap[msg.electionId.toNumber()];
       const electionVoted = await readContracts.Diplomacy.getElectionVoted(i);
@@ -217,10 +218,8 @@ export default function Elections({
   const onElectionCreated = async (msg, electionsMap) => {
     console.log("onElectionCreated ", msg);
     if (!electionsMap[msg.electionId.toNumber()]) {
-      console.log("Election not found!!!");
       addNewElectionToTable(msg.electionId.toNumber(), electionsMap);
     }
-    // init();
   };
 
   const addNewElectionToTable = async (i, electionsMap) => {

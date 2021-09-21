@@ -63,27 +63,7 @@ export default function Voting({
     setElectionCandidates(loadedElection.candidates);
 
     if (!loadedElection.isActive || votedStatus) {
-      const scoreSum = await readContracts.Diplomacy.electionScoreSum(id);
-      const electionFunding = loadedElection.funds;
-      const payout = [];
-      const scores = [];
-      for (let i = 0; i < loadedElection.candidates.length; i++) {
-        const candidateScore = (
-          await readContracts.Diplomacy.getElectionScore(id, loadedElection.candidates[i])
-        ).toNumber();
-        const candidatePay = Math.floor((candidateScore / scoreSum) * electionFunding);
-        if (!isNaN(candidatePay)) {
-          payout.push(fromWei(candidatePay.toString()));
-        } else {
-          payout.push(0);
-        }
-        scores.push(candidateScore);
-      }
-      console.log({ payout });
-      console.log({ scores });
-      setCandidatePayout(payout);
-      setCandidateScores(scores);
-      setElectionScoreSum(scoreSum);
+      updateVotingData(loadedElection);
     }
 
     console.log({
@@ -99,6 +79,30 @@ export default function Voting({
     addEventListener("Diplomacy", "BallotCast", onBallotCast, election);
     addEventListener("Diplomacy", "ElectionEnded", onElectionEnded);
     addEventListener("Diplomacy", "ElectionPaid", onElectionPaid);
+  };
+
+  const updateVotingData = async loadedElection => {
+    const scoreSum = await readContracts.Diplomacy.electionScoreSum(id);
+    const electionFunding = loadedElection.funds;
+    const payout = [];
+    const scores = [];
+    for (let i = 0; i < loadedElection.candidates.length; i++) {
+      const candidateScore = (
+        await readContracts.Diplomacy.getElectionScore(id, loadedElection.candidates[i])
+      ).toNumber();
+      const candidatePay = Math.floor((candidateScore / scoreSum) * electionFunding);
+      if (!isNaN(candidatePay)) {
+        payout.push(fromWei(candidatePay.toString()));
+      } else {
+        payout.push(0);
+      }
+      scores.push(candidateScore);
+    }
+    console.log({ payout });
+    console.log({ scores });
+    setCandidatePayout(payout);
+    setCandidateScores(scores);
+    setElectionScoreSum(scoreSum);
   };
 
   const addEventListener = async (contractName, eventName, callback) => {
@@ -130,18 +134,11 @@ export default function Voting({
 
   const onElectionEnded = async args => {
     console.log("onElectionEnded ", args);
+    if (args[0].toNumber() != id) return;
+    const loadedElection = await readContracts.Diplomacy.getElectionById(id);
+    console.log({ loadedElection });
 
-    const value = toWei(electionFundingAmount.toString());
-    const adrs = electionCandidates;
-    const pay = [];
-    const electionScoreSum = await readContracts.Diplomacy.electionScoreSum(id);
-    for (let i = 0; i < adrs.length; i++) {
-      const candidateScore = await readContracts.Diplomacy.getElectionScore(id, adrs[i]);
-      const candidatePay = ((candidateScore.toNumber() / electionScoreSum.toNumber()) * value).toString();
-      pay.push(candidatePay);
-    }
-
-    setCandidatePayout(pay);
+    updateVotingData(loadedElection);
 
     setCanVote(false);
     setIsElectionActive(false);
@@ -308,7 +305,6 @@ export default function Voting({
         setIsElectionActive(false);
       } else {
         setIsElectionEnding(false);
-        console.log(update.message);
         return;
       }
     });
