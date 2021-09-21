@@ -290,8 +290,8 @@ export default function Create({
       .then(values => {
         setCurrent(current + 1);
       })
-      .then(err => {
-        //
+      .catch(err => {
+        console.log({ err });
       });
   };
 
