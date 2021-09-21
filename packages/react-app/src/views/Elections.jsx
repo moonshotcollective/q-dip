@@ -188,10 +188,10 @@ export default function Elections({
       electionsMap.set(i, electionEntry);
     }
 
-    setElectionsMap(electionsMap);
-
     addEventListener("Diplomacy", "BallotCast", onBallotCast, electionsMap);
     addEventListener("Diplomacy", "ElectionCreated", onElectionCreated, electionsMap);
+
+    setElectionsMap(electionsMap);
   };
 
   const addEventListener = async (contractName, eventName, callback, electionsMap) => {
@@ -203,12 +203,58 @@ export default function Elections({
   };
 
   const onBallotCast = async (msg, electionsMap) => {
-    console.log("onBallotCast ", msg);
+    console.log("onBallotCast ", msg.electionId.toNumber(), electionsMap);
+    if (electionsMap[msg.electionId.toNumber()] !== undefined) {
+      let electionEntry = electionsMap[msg.electionId.toNumber()];
+      const electionVoted = await readContracts.Diplomacy.getElectionVoted(i);
+      electionEntry.n_voted = { n_voted: electionVoted.toNumber(), outOf: election.candidates.length };
+      electionsMap.set(msg.electionId.toNumber(), electionEntry);
+      setElectionsMap(electionsMap);
+      console.log("updated ballot cast");
+    }
   };
 
   const onElectionCreated = async (msg, electionsMap) => {
     console.log("onElectionCreated ", msg);
-    init();
+    if (!electionsMap[msg.electionId.toNumber()]) {
+      console.log("Election not found!!!");
+      addNewElectionToTable(msg.electionId.toNumber(), electionsMap);
+    }
+    // init();
+  };
+
+  const addNewElectionToTable = async (i, electionsMap) => {
+    const election = await readContracts.Diplomacy.getElectionById(i);
+    console.log({ election });
+
+    const electionVoted = await readContracts.Diplomacy.getElectionVoted(i);
+    const hasVoted = await readContracts.Diplomacy.hasVoted(i, address);
+
+    const tags = [];
+    if (election.admin === address) {
+      tags.push("admin");
+    }
+    if (election.candidates.includes(address)) {
+      tags.push("candidate");
+    }
+    if (hasVoted) {
+      tags.push("voted");
+    }
+    let status = election.isActive;
+
+    let created = new Date(election.createdAt.toNumber() * 1000).toISOString().substring(0, 10);
+    let electionEntry = {
+      created_date: created,
+      name: election.name,
+      creator: election.admin,
+      n_voted: { n_voted: electionVoted.toNumber(), outOf: election.candidates.length },
+      status: status,
+      tags: tags,
+    };
+
+    electionsMap.set(i, electionEntry);
+
+    setElectionsMap(electionsMap);
   };
 
   return (
