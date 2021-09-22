@@ -46,7 +46,7 @@ const { ethers } = require("ethers");
 // const targetNetwork = NETWORKS.kovan; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 // const targetNetwork = NETWORKS.localhost;
 // const targetNetwork = NETWORKS.matic;
-const targetNetwork = NETWORKS.localhost;
+const targetNetwork = NETWORKS.rinkeby;
 
 // 😬 Sorry for all the console logging
 const DEBUG = false;
