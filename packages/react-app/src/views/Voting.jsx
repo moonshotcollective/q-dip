@@ -460,6 +460,7 @@ export default function Voting({
             )}
           </div>
           <div>{errorMsg && <Text type="danger">{errorMsg}</Text>}</div>
+          <div>{isElectionPaid && <Text type="success">Election Payout Complete!</Text>}</div>
         </PageHeader>
       </div>
     </>

@@ -171,7 +171,9 @@ const Step2 = ({ mainnetProvider, election, errorMsg }) => {
               icon={<PlusCircleFilled />}
               size="large"
               onClick={() => {
-                election.candidates.push(toAddress);
+                if (!election.candidates.includes(toAddress)) {
+                  election.candidates.push(toAddress);
+                }
                 setToAddress("");
               }}
             >
@@ -190,7 +192,7 @@ const Step2 = ({ mainnetProvider, election, errorMsg }) => {
                 <Button
                   type="link"
                   icon={<DeleteOutlined />}
-                  onClick={async () => {
+                  onClick={() => {
                     console.log(election.candidates.splice(index, 1));
                     const updatedAddresses = election.candidates;
                     updatedAddresses.splice(index, 1);

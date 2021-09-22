@@ -196,6 +196,7 @@ export default function Elections({
 
     addEventListener("Diplomacy", "BallotCast", onBallotCast, newElectionsMap);
     addEventListener("Diplomacy", "ElectionCreated", onElectionCreated, newElectionsMap);
+    addEventListener("Diplomacy", "ElectionEnded", onElectionEnded, newElectionsMap);
     setTableDataLoading(false);
     setElectionsMap(newElectionsMap);
   };
@@ -209,21 +210,35 @@ export default function Elections({
   };
 
   const onBallotCast = async (msg, electionsMap) => {
-    console.log("onBallotCast ", msg.electionId.toNumber(), electionsMap[0]);
-    if (electionsMap[msg.electionId.toNumber()] !== undefined) {
-      let electionEntry = electionsMap[msg.electionId.toNumber()];
-      const electionVoted = await readContracts.Diplomacy.getElectionVoted(i);
-      electionEntry.n_voted = { n_voted: electionVoted.toNumber(), outOf: election.candidates.length };
-      electionsMap.set(msg.electionId.toNumber(), electionEntry);
+    console.log("onBallotCast ", msg.electionId.toNumber());
+    let id = msg.electionId.toNumber();
+    if (electionsMap.get(id) !== undefined) {
+      let electionEntry = electionsMap.get(id);
+      const electionVoted = await readContracts.Diplomacy.getElectionVoted(id);
+      electionEntry.n_voted.n_voted = electionVoted.toNumber();
+      electionsMap.set(id, electionEntry);
       setElectionsMap(electionsMap);
       console.log("updated ballot cast");
     }
   };
 
   const onElectionCreated = async (msg, electionsMap) => {
-    console.log("onElectionCreated ", msg);
-    if (!electionsMap[msg.electionId.toNumber()]) {
+    console.log("onElectionCreated ", msg.electionId.toNumber());
+    let id = msg.electionId.toNumber();
+    if (electionsMap.get(id) === undefined) {
       addNewElectionToTable(msg.electionId.toNumber(), electionsMap);
+    }
+  };
+
+  const onElectionEnded = async (msg, electionsMap) => {
+    console.log("onElectionEnded ", msg.electionId.toNumber());
+    let id = msg.electionId.toNumber();
+    if (electionsMap.get(id) !== undefined) {
+      let electionEntry = electionsMap.get(id);
+      const election = await readContracts.Diplomacy.getElectionById(id);
+      electionEntry.status = election.isActive;
+      electionsMap.set(id, electionEntry);
+      setElectionsMap(electionsMap);
     }
   };
 
