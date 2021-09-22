@@ -142,6 +142,7 @@ export default function Voting({
 
     setCanVote(false);
     setIsElectionActive(false);
+    setIsElectionEnding(false);
   };
 
   const onElectionPaid = async (msg, electionsMap) => {
@@ -166,11 +167,11 @@ export default function Voting({
       }
       setCandidateMap(mapping);
     }
-    setMyVotes(election.votes);
+    setVotesLeft(election.votes);
   }, [election, address]);
 
   const [votingData, setVotingData] = useState([]);
-  const [myVotes, setMyVotes] = useState(election.votes);
+  const [votesLeft, setVotesLeft] = useState(election.votes);
   const [scoreSum, setScoreSum] = useState(0);
 
   const minusVote = addr => {
@@ -179,20 +180,22 @@ export default function Voting({
       candidate.votes = candidate.votes - 1;
       candidate.score = (candidate.votes ** 0.5).toFixed(2);
       candidateMap.set(addr, candidate);
-      setMyVotes(myVotes + 1);
+      setVotesLeft(votesLeft + 1);
+      setErrorMsg(null);
     }
-    console.log(candidate);
+    // console.log(candidate);
   };
 
   const addVote = addr => {
     const candidate = candidateMap.get(addr);
-    if (candidate.votes < election.votes && myVotes > 0) {
+    if (candidate.votes < election.votes && votesLeft > 0) {
       candidate.votes = candidate.votes + 1;
       candidate.score = (candidate.votes ** 0.5).toFixed(2);
       candidateMap.set(addr, candidate);
-      setMyVotes(myVotes - 1);
+      setVotesLeft(votesLeft - 1);
+      setErrorMsg(null);
     }
-    console.log(candidate);
+    // console.log(candidate);
   };
 
   const actionCol = () => {
@@ -301,7 +304,6 @@ export default function Voting({
     const result = tx(writeContracts.Diplomacy.endElection(id), update => {
       if (update && (update.status === "confirmed" || update.status === 1)) {
         console.log(" 🍾 Transaction " + update.hash + " finished!");
-        setIsElectionEnding(false);
         setIsElectionActive(false);
       } else {
         setIsElectionEnding(false);
@@ -361,6 +363,32 @@ export default function Voting({
     );
   };
 
+  const [errorMsg, setErrorMsg] = useState("");
+  const castBallot = async () => {
+    console.log("casting ballot ", votesLeft);
+    if (votesLeft > 0) {
+      setErrorMsg("All remaining votes need to be distributed");
+      return;
+    }
+    setErrorMsg(null);
+
+    const candidates = Array.from(candidateMap.keys());
+    const scores = [];
+    candidateMap.forEach(d => {
+      scores.push(Math.floor(d.score * 10 ** electionScoreFactor));
+    });
+    console.log(candidates, scores);
+
+    const result = tx(writeContracts.Diplomacy.castBallot(id, candidates, scores), update => {
+      console.log("📡 Transaction Update:", update);
+      if (update && (update.status === "confirmed" || update.status === 1)) {
+        console.log(" 🍾 Transaction " + update.hash + " finished!");
+      } else {
+        console.log("update error ", update.status);
+      }
+    });
+  };
+
   return (
     <>
       <div
@@ -406,7 +434,7 @@ export default function Voting({
           {canVote && (
             <Typography.Title level={5}>
               {" "}
-              Funding: {electionFundingAmount} {<Divider type="vertical" />} Remaining Votes: {myVotes}{" "}
+              Funding: {electionFundingAmount} {<Divider type="vertical" />} Remaining Votes: {votesLeft}{" "}
             </Typography.Title>
           )}
           <Table
@@ -424,35 +452,14 @@ export default function Voting({
             }}
           />
           <Divider />
-          {canVote && isElectionActive && (
-            <Button
-              icon={<SendOutlined />}
-              size="large"
-              shape="round"
-              type="primary"
-              onClick={() => {
-                console.log("casting ballot");
-
-                const candidates = Array.from(candidateMap.keys());
-                const scores = [];
-                candidateMap.forEach(d => {
-                  scores.push(Math.floor(d.score * 10 ** electionScoreFactor));
-                });
-                console.log(candidates, scores);
-
-                const result = tx(writeContracts.Diplomacy.castBallot(id, candidates, scores), update => {
-                  console.log("📡 Transaction Update:", update);
-                  if (update && (update.status === "confirmed" || update.status === 1)) {
-                    console.log(" 🍾 Transaction " + update.hash + " finished!");
-                  } else {
-                    console.log("update error ", update.status);
-                  }
-                });
-              }}
-            >
-              Cast Ballot
-            </Button>
-          )}
+          <div>
+            {canVote && isElectionActive && (
+              <Button icon={<SendOutlined />} size="large" shape="round" type="primary" onClick={() => castBallot()}>
+                Cast Ballot
+              </Button>
+            )}
+          </div>
+          <div>{errorMsg && <Text type="danger">{errorMsg}</Text>}</div>
         </PageHeader>
       </div>
     </>
