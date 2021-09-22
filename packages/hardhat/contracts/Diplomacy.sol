@@ -112,6 +112,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         uint256[] memory _scores
     ) {
 
+        // check to see if duplicate addrs
+        require( _noDuplicateAddresses(_adrs), "Duplicate Addresses Detected!" );
         require( elections[electionId].active, "Election Not Active!" );
         require( !elections[electionId].paid, "Election is already paid-out!" );
         require( !voted[electionId][msg.sender], "Sender already voted!" );
@@ -179,7 +181,8 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
         int8 _votes,
         address[] memory _adrs
     ) public returns (uint256 electionId) {
-
+        // check for duplicate addrs 
+        require( _noDuplicateAddresses(_adrs), "Duplicate Addresses Detected!" );
         if ( _token == address(0) ) { // 0x00.. --> Eth Election
             electionId = _newEthElection(_name, _funds, _votes, _adrs);
         } else { // Token Election
@@ -391,6 +394,17 @@ contract Diplomacy is AccessControl, Ownable, ReentrancyGuard {
     function hasVoted(uint256 electionId, address _sender) 
     public view returns (bool) {
         return voted[electionId][_sender];
+    }
+
+    function _noDuplicateAddresses(address[] memory adrs) internal pure returns (bool) {
+        for (uint i = 0; i < adrs.length; i++) {
+            for (uint j = 0; j < adrs.length; j++) {
+                if ( adrs[i] == adrs[j] && i != j ) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // Function to receive Ether. msg.data must be empty
