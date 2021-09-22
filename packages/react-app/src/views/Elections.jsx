@@ -53,7 +53,7 @@ export default function Elections({
       dataIndex: "name",
       key: "name",
       align: "center",
-      render: name => <Typography.Title level={5}>{name}</Typography.Title>,
+      render: name => <Typography.Text>{name}</Typography.Text>,
     };
   };
   const creatorCol = () => {
@@ -63,7 +63,7 @@ export default function Elections({
       key: "creator",
       align: "center",
       render: creator => (
-        <Address address={creator} fontSize="14pt" ensProvider={mainnetProvider} blockExplorer={blockExplorer} />
+        <><Address address={creator} fontSize="14pt" ensProvider={mainnetProvider} blockExplorer={blockExplorer} /></>
       ),
     };
   };
@@ -88,7 +88,7 @@ export default function Elections({
       key: "status",
       align: "center",
       width: 100,
-      render: status => (status ? <Tag color={"geekblue"}>open</Tag> : <Tag>closed</Tag>),
+      render: status => (status ? <Tag color={"lime"}>open</Tag> : <Tag>closed</Tag>),
     };
   };
   const tagsCol = () => {
@@ -99,7 +99,7 @@ export default function Elections({
       align: "center",
       render: tags =>
         tags.map(r => {
-          let color = "purple";
+          let color = "orange";
           if (r == "candidate") {
             color = "blue";
           }
