@@ -37,6 +37,7 @@ export default function Elections({
   writeContracts,
 }) {
   const [electionsMap, setElectionsMap] = useState();
+  const [tableDataLoading, setTableDataLoading] = useState(false);
 
   const dateCol = () => {
     return {
@@ -63,7 +64,9 @@ export default function Elections({
       key: "creator",
       align: "center",
       render: creator => (
-        <><Address address={creator} fontSize="14pt" ensProvider={mainnetProvider} blockExplorer={blockExplorer} /></>
+        <>
+          <Address address={creator} fontSize="14pt" ensProvider={mainnetProvider} blockExplorer={blockExplorer} />
+        </>
       ),
     };
   };
@@ -123,7 +126,7 @@ export default function Elections({
       render: (text, record, index) => (
         <>
           <Space size="middle">
-            <Button type="link" icon={<LinkOutlined />} size="small" shape="round" onClick={() => viewElection(index)}>
+            <Button type="link" icon={<LinkOutlined />} size="small" shape="round" onClick={() => viewElection(record)}>
               View
             </Button>
           </Space>
@@ -136,9 +139,9 @@ export default function Elections({
 
   const routeHistory = useHistory();
 
-  const viewElection = index => {
-    console.log({ index });
-    routeHistory.push("/voting/" + index);
+  const viewElection = record => {
+    // console.log({ record });
+    routeHistory.push("/voting/" + record.id);
   };
 
   const createElection = () => {
@@ -155,8 +158,9 @@ export default function Elections({
 
   const init = async () => {
     const newElectionsMap = new Map();
+    setElectionsMap(newElectionsMap);
     const numElections = await readContracts.Diplomacy.numElections();
-
+    setTableDataLoading(true);
     for (let i = 0; i < numElections; i++) {
       const election = await readContracts.Diplomacy.getElectionById(i);
       console.log({ election });
@@ -178,6 +182,7 @@ export default function Elections({
 
       let created = new Date(election.createdAt.toNumber() * 1000).toISOString().substring(0, 10);
       let electionEntry = {
+        id: i,
         created_date: created,
         name: election.name,
         creator: election.admin,
@@ -191,7 +196,7 @@ export default function Elections({
 
     addEventListener("Diplomacy", "BallotCast", onBallotCast, newElectionsMap);
     addEventListener("Diplomacy", "ElectionCreated", onElectionCreated, newElectionsMap);
-
+    setTableDataLoading(false);
     setElectionsMap(newElectionsMap);
   };
 
@@ -256,6 +261,11 @@ export default function Elections({
     setElectionsMap(electionsMap);
   };
 
+  let table_state = {
+    bordered: true,
+    loading: tableDataLoading,
+  };
+
   return (
     <>
       <div
@@ -280,12 +290,12 @@ export default function Elections({
         />
         {electionsMap && (
           <Table
-            bordered
+            {...table_state}
             size="middle"
-            dataSource={Array.from(electionsMap.values())}
+            dataSource={Array.from(electionsMap.values()).reverse()}
             columns={columns}
             pagination={false}
-            scroll={{ y: 800 }}
+            scroll={{ y: 600 }}
             style={{ padding: 10 }}
           />
         )}
