@@ -3,7 +3,7 @@ const fastify = require('fastify')({ logger: true })
 const mongoose = require('mongoose')
 const Web3 = require('web3')
 const { MetaTx } = require('./models/metatx.js')
-const diplomacyAbi = require('./config/EIP721Metatransaction.json')
+const diplomacyAbi = require('./config/Diplomacy.json')
 
 const web3 = new Web3(process.env.RPC_URL)
 
