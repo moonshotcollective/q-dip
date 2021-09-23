@@ -113,3 +113,4 @@ artifacts/
 cache/
 packages/react-app/build/
 packages/hardhat/deployments/localhost/
+packages/hardhat/deployments/rinkeby/solcInputs/
